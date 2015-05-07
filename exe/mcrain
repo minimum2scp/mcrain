@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+# coding: utf-8
+
+require "mcrain"
+
+action, service, *args  = *ARGV
+if action.nil? || service.nil?
+
+  $stderr.puts(<<MESSAGE)
+#{$PROGRAM_NAME} <action> <target> [n] [-v or --verbose]
+  action: start or stop
+  service: redis, rabbitmq or riak
+  n: cluster size for riak
+MESSAGE
+
+  exit(1)
+end
+
+unless args.include?("-v") || args.include?("--verbose")
+  require 'logger'
+  Mcrain.logger = Logger.new("/dev/null")
+end
+
+begin
+  options = {}
+  case service
+  when "riak" then
+    raise "DOCKER_RIAK_PATH is blank. Set it the path to docker-riak repository." unless ENV['DOCKER_RIAK_PATH']
+    Mcrain::Riak.docker_riak_path = ENV['DOCKER_RIAK_PATH']
+    cluster_size = args.shift.to_i
+    cluster_size = 1 if cluster_size == 0
+    options = {cluster_size: cluster_size, automatic_clustering: cluster_size > 1}
+  end
+
+  server = Mcrain.lookup(service.to_sym, options)
+  server.send(action)
+
+  case action
+  when "start" then
+    puts "To connect:\nrequire '#{server.client_require}'\nclient = #{server.client_script}"
+  end
+rescue => e
+  $stderr.puts "\e[31m[#{e.class}] #{e.message}\e[0m"
+  exit(1)
+else
+  $stderr.puts "\e[32mOK\e[0m"
+  exit(0)
+end
