@@ -13,4 +13,4 @@ Mcrain.logger = Logger.new("log/test.log")
 Mcrain.logger.level = Logger::DEBUG
 
 # TODO use submodule after move to independent repository
-Mcrain::Riak.docker_riak_path = File.expand_path("../../../../spec/support/riak/docker", __FILE__)
+Mcrain::Riak.docker_riak_path = File.expand_path("../support/docker-riak", __FILE__)
