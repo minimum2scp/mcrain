@@ -19,4 +19,17 @@ describe Mcrain::Rabbitmq do
     it{ uri = URI.parse(s.runtime_url);  expect(uri.scheme).to eq "rabbitmq" }
   end
 
+  context "start twice" do
+    it do
+      first = nil
+      Mcrain[:rabbitmq].start do |s|
+        first = s.client
+        expect(s.client).to eq first
+      end
+      Mcrain[:rabbitmq].start do |s|
+        expect(s.client).to_not eq first
+      end
+    end
+  end
+
 end

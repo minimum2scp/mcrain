@@ -5,6 +5,7 @@ describe Mcrain::Riak do
   context ".start" do
     let(:data){ {"foo" => {"bar" => "baz"}} }
     it do
+      first = nil
       Mcrain[:riak].start do |s|
         c = s.client
         obj1 = c.bucket("bucket1").get_or_new("foo")
@@ -15,6 +16,11 @@ describe Mcrain::Riak do
         expect(obj2.content_type).to eq "application/json"
         expect(JSON.parse(obj2.raw_data)).to eq data
 
+        first = s.client
+        expect(s.client).to eq first
+      end
+      Mcrain[:riak].start do |s|
+        expect(s.client).to_not eq first
       end
     end
   end

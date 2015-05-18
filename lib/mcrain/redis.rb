@@ -10,22 +10,16 @@ module Mcrain
     self.container_image = "redis:2.8.19"
     self.port = 6379
 
-    def client
-      require client_require
-      @client ||= ::Redis.new(build_client_options)
-    end
-
-    def build_client_options
-      {host: host, port: port}
-    end
-
     def client_require
       'redis'
     end
 
-    def client_script
-      client
-      "Redis.new(#{build_client_options.inspect})"
+    def client_class
+      ::Redis
+    end
+
+    def client_init_args
+      [{host: host, port: port}]
     end
 
     def wait_for_ready

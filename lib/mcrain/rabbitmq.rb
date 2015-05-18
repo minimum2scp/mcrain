@@ -32,22 +32,16 @@ module Mcrain
       "guest"
     end
 
-    def client
-      require client_require
-      @client ||= RabbitMQ::HTTP::Client.new(*build_client_args)
-    end
-
-    def build_client_args
-      ["http://#{host}:#{port}", {username: username, password: password}]
-    end
-
     def client_require
       'rabbitmq/http/client'
     end
 
-    def client_script
-      client
-      "RabbitMQ::HTTP::Client.new(*#{build_client_args.inspect})"
+    def client_class
+      RabbitMQ::HTTP::Client
+    end
+
+    def client_init_args
+      ["http://#{host}:#{port}", {username: username, password: password}]
     end
 
     def wait_for_ready
