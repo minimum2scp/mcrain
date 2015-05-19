@@ -1,0 +1,10 @@
+machine:
+  ruby:
+    version: 2.2.2
+  service:
+    - docker
+
+dependencies:
+  pre:
+    - gem install bundler --version '~> 1.9.9'
+
