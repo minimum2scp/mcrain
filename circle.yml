@@ -14,7 +14,7 @@ dependencies:
     - "~/docker"
   pre:
     - gem install bundler --version '~> 1.9.9'
-    - mkdir ~/docker
+    - mkdir -p ~/docker
     - if [[ -e ~/docker/redis.tar ]]; then
         docker load -f ~/docker/redis.tar;
       else
