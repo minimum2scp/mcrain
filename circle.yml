@@ -15,4 +15,10 @@ dependencies:
   post:
     - docker pull redis:2.8.19
     - docker pull rabbitmq:3.4.4-management
+    - docker pull hectcastro/riak:latest
 
+test:
+  override:
+    - bundle exec rake spec
+        environment:
+          DOCKER_HOST: unix:///var/run/docker.sock
