@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'spec_helper'
 
 describe Mcrain::Rabbitmq do
@@ -29,6 +30,16 @@ describe Mcrain::Rabbitmq do
       Mcrain[:rabbitmq].start do |s|
         expect(s.client).to_not eq first
       end
+    end
+  end
+
+  context "don't reset for first start" do
+    it do
+      first_url = Mcrain[:rabbitmq].url
+      Mcrain[:rabbitmq].start do |s|
+        expect(s.url).to eq first_url
+      end
+      expect(Mcrain[:rabbitmq].url).to_not eq first_url
     end
   end
 

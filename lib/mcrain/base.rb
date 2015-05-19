@@ -17,6 +17,8 @@ module Mcrain
 
       attr_accessor :container_image, :port
     end
+
+    attr_accessor :skip_reset_after_stop
     def reset
       instance_variables.each do |var|
         instance_variable_set(var, nil)
@@ -52,7 +54,6 @@ module Mcrain
     end
 
     def start
-      reset
       clear_old_container
       run_container
       if block_given?
@@ -143,6 +144,7 @@ module Mcrain
 
     def stop
       LoggerPipe.run(logger, "docker kill #{container_name}", timeout: 10)
+      reset unless skip_reset_after_stop
     end
 
     def logger
