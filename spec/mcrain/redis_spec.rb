@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'spec_helper'
 
 describe Mcrain::Redis do
@@ -20,6 +21,24 @@ describe Mcrain::Redis do
       Mcrain[:redis].start do |s|
         expect(s.client).to_not eq first
       end
+    end
+  end
+
+  context "skip_reset_after_stop" do
+    after{ Mcrain[:redis].skip_reset_after_stop = nil }
+
+    it false do
+      Mcrain[:redis].skip_reset_after_stop = false
+      first_url = Mcrain[:redis].url
+      Mcrain[:redis].start{ }
+      expect(Mcrain[:redis].url).to_not eq first_url
+    end
+
+    it true do
+      Mcrain[:redis].skip_reset_after_stop = true
+      first_url = Mcrain[:redis].url
+      Mcrain[:redis].start{ }
+      expect(Mcrain[:redis].url).to eq first_url
     end
   end
 

@@ -111,8 +111,7 @@ module Mcrain
     attr_reader :host, :cids, :pb_ports, :uris, :admin_uris
     attr_accessor :automatic_clustering, :cluster_size
 
-    def reset
-      super
+    def setup
       w = @work_dir = Mcrain::Riak.docker_riak_path
       raise "#{self.class.name}.docker_riak_path is blank. You have to set it to use the class" if w.blank?
       raise "#{w}/Makefile not found" unless File.readable?(File.join(w, "Makefile"))
@@ -126,6 +125,7 @@ module Mcrain
     end
 
     def run_container
+      setup
       logger.debug("cd #{@work_dir.inspect}")
       Dir.chdir(@work_dir) do
         # http://basho.co.jp/riak-quick-start-with-docker/
@@ -152,6 +152,7 @@ module Mcrain
       Dir.chdir(@work_dir) do
         LoggerPipe.run(logger, "#{@prepare_cmd} make stop-cluster")
       end
+      reset unless skip_reset_after_stop
     end
 
   end
