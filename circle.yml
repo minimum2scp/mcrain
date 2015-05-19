@@ -10,12 +10,29 @@ checkout:
     - git submodule update --init
 
 dependencies:
+  cache_directories:
+    - "~/docker"
   pre:
     - gem install bundler --version '~> 1.9.9'
-  post:
-    - docker pull redis:2.8.19
-    - docker pull rabbitmq:3.4.4-management
-    - docker pull hectcastro/riak:latest
+    - mkdir ~/docker
+    - if [[ -e ~/docker/redis.tar ]]; then
+        docker load -f ~/docker/redis.tar
+      else
+        docker pull redis:2.8.19
+        docker save redis:2.8.19 > ~/docker/redis.tar
+      fi
+    - if [[ -e ~/docker/rabbitmq.tar ]]; then
+        docker load -f ~/docker/rabbitmq.tar
+      else
+        docker pull rabbitmq:3.4.4-management
+        docker save rabbitmq:3.4.4-management > ~/docker/rabbitmq.tar
+      fi
+    - if [[ -e ~/docker/riak.tar ]]; then
+        docker load -f ~/docker/riak.tar
+      else
+        docker pull hectcastro/riak:latest
+        docker save hectcastro/riak:latest > ~/docker/riak.tar
+      fi
 
 test:
   override:
