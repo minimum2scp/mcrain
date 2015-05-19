@@ -16,19 +16,19 @@ dependencies:
     - gem install bundler --version '~> 1.9.9'
     - mkdir -p ~/docker
     - if [[ -e ~/docker/redis.tar ]]; then
-        docker load -f ~/docker/redis.tar;
+        docker load -i ~/docker/redis.tar;
       else
         docker pull redis:2.8.19;
         docker save redis:2.8.19 > ~/docker/redis.tar;
       fi
     - if [[ -e ~/docker/rabbitmq.tar ]]; then
-        docker load -f ~/docker/rabbitmq.tar;
+        docker load -i ~/docker/rabbitmq.tar;
       else
         docker pull rabbitmq:3.4.4-management;
         docker save rabbitmq:3.4.4-management > ~/docker/rabbitmq.tar;
       fi
     - if [[ -e ~/docker/riak.tar ]]; then
-        docker load -f ~/docker/riak.tar;
+        docker load -i ~/docker/riak.tar;
       else
         docker pull hectcastro/riak:latest;
         docker save hectcastro/riak:latest > ~/docker/riak.tar;
