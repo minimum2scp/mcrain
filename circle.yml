@@ -12,4 +12,7 @@ checkout:
 dependencies:
   pre:
     - gem install bundler --version '~> 1.9.9'
+  post:
+    - docker pull redis:2.8.19
+    - docker pull rabbitmq:3.4.4-management
 
