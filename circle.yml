@@ -13,6 +13,8 @@ dependencies:
   cache_directories:
     - "~/docker"
   pre:
+    - echo 'DOCKER_OPTS="$DOCKER_OPTS -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock"' | sudo tee -a /etc/default/docker
+    - sudo service docker restart
     - gem install bundler --version '~> 1.9.9'
     - mkdir -p ~/docker
     - if [[ -e ~/docker/redis.tar ]]; then
@@ -38,4 +40,4 @@ test:
   override:
     - bundle exec rake spec:
         environment:
-          DOCKER_HOST: unix:///var/run/docker.sock
+          DOCKER_HOST: tcp://127.0.0.1:2375
