@@ -20,16 +20,15 @@ module Mcrain
       super
     end
 
-    def client
-      unless @client
-        require client_require
-        build_uris
-        @client = ::Riak::Client.new(build_client_options)
-      end
-      @client
+    def build_client
+      super{ build_uris }
     end
 
-    def build_client_options
+    def client_class
+      ::Riak::Client
+    end
+
+    def client_init_args
       options = {
         nodes: uris.map{|uri| {host: uri.host, pb_port: uri.port} }
       }
@@ -38,16 +37,11 @@ module Mcrain
           options[:authentication] = {user: uri.user, password: uri.password}
         end
       end
-      options
+      [options]
     end
 
     def client_require
       'riak'
-    end
-
-    def client_script
-      client
-      "Riak::Client.new(#{build_client_options.inspect})"
     end
 
     def build_uris
@@ -82,8 +76,13 @@ module Mcrain
     def wait_for_ready
       c = client
       logger.debug("sending a ping")
-      r = c.ping
-      raise "Ping failure with #{c.inspect}" unless r
+      begin
+        r = c.ping
+        raise "Ping failure with #{c.inspect}" unless r
+      rescue => e
+        logger.debug("[#{e.class.name}] #{e.message} by #{c.inspect}")
+        raise e
+      end
       20.times do |i|
         begin
           logger.debug("get and store ##{i}")
@@ -112,7 +111,8 @@ module Mcrain
     attr_reader :host, :cids, :pb_ports, :uris, :admin_uris
     attr_accessor :automatic_clustering, :cluster_size
 
-    def initialize
+    def reset
+      super
       w = @work_dir = Mcrain::Riak.docker_riak_path
       raise "#{self.class.name}.docker_riak_path is blank. You have to set it to use the class" if w.blank?
       raise "#{w}/Makefile not found" unless File.readable?(File.join(w, "Makefile"))
@@ -129,12 +129,15 @@ module Mcrain
       logger.debug("cd #{@work_dir.inspect}")
       Dir.chdir(@work_dir) do
         # http://basho.co.jp/riak-quick-start-with-docker/
+        #
+        # "Please wait approximately 30 seconds for the cluster to stabilize"
+        #   from https://gist.github.com/agutow/11133143#file-docker3-sh-L12
         LoggerPipe.run(logger, "#{@prepare_cmd} #{build_command}")
         sleep(1)
         20.times do
           begin
             LoggerPipe.run(logger, "#{@prepare_cmd} make test-cluster")
-            sleep(45) # Please wait approximately 30 seconds for the cluster to stabilize
+            sleep(5)
             return
           rescue
             sleep(0.5)

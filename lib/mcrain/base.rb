@@ -17,6 +17,11 @@ module Mcrain
 
       attr_accessor :container_image, :port
     end
+    def reset
+      instance_variables.each do |var|
+        instance_variable_set(var, nil)
+      end
+    end
 
     def container_image
       self.class.container_image or raise "No container_image for #{self.class.name}"
@@ -47,6 +52,7 @@ module Mcrain
     end
 
     def start
+      reset
       clear_old_container
       run_container
       if block_given?
@@ -69,8 +75,7 @@ module Mcrain
     end
 
     def run_container
-      s = LoggerPipe.run(logger, build_docker_command, timeout: 10)
-
+      LoggerPipe.run(logger, build_docker_command, timeout: 10)
     end
 
     def build_docker_command
@@ -98,7 +103,7 @@ module Mcrain
         begin
           wait_for_ready
         rescue => e
-          # $stderr.puts "[#{e.class}] #{e.message}"
+          $stderr.puts "[#{e.class}] #{e.message}"
           sleep(1)
           retry
         end
@@ -110,15 +115,30 @@ module Mcrain
     end
 
     def client
-      raise NotImplementedError
+      @client ||= build_client
+    end
+
+    def build_client
+      require client_require
+      yield if block_given?
+      client_class.new(*client_init_args)
     end
 
     def client_require
       raise NotImplementedError
     end
 
-    def client_script
+    def client_class
       raise NotImplementedError
+    end
+
+    def client_init_args
+      raise NotImplementedError
+    end
+
+    def client_script
+      client
+      "#{client_class.name}.new(*#{client_init_args.inspect})"
     end
 
     def stop
