@@ -7,7 +7,7 @@ module Mcrain
   class Mysql < Base
     self.server_name = :mysql
 
-    self.container_image = "mysql:latest"
+    self.container_image = "mysql:5.5"
     self.port = 3306
 
     def client_require
