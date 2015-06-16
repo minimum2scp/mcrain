@@ -9,7 +9,7 @@ if action.nil? || service.nil?
   $stderr.puts(<<MESSAGE)
 #{$PROGRAM_NAME} <action> <target> [n] [-v or --verbose]
   action: start or stop
-  service: redis, rabbitmq or riak
+  service: redis, rabbitmq, mysql or riak
   n: cluster size for riak
 MESSAGE
 

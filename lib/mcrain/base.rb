@@ -3,6 +3,7 @@ require 'mcrain'
 
 require 'uri'
 require 'timeout'
+require 'socket'
 
 require 'logger_pipe'
 

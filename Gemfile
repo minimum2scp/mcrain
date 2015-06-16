@@ -13,6 +13,9 @@ group :development do
   # for riak
   gem "docker-api", "~> 1.21.1"
   gem "riak-client"
+
+  # for mysql
+  gem "mysql2"
 end
 
 group :development do
