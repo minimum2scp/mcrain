@@ -26,7 +26,8 @@ module Mcrain
       unless `boot2docker status`.strip == "running"
         raise "boot2docker is not running. Please `boot2docker start`"
       end
-      "%s && " % `boot2docker shellinit`.strip.split(/\n/).join(" && ")
+      exports = `boot2docker shellinit 2>/dev/null`.strip.split(/\n/)
+      exports.empty? ? '' : "%s && " % exports.join(" && ")
     end
 
     def setup_docker_options
