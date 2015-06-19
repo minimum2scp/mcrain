@@ -54,7 +54,7 @@ module Mcrain
       uri = URI.parse(ENV["DOCKER_HOST"])
       @host = (uri.scheme == "unix") ? "localhost" : uri.host
       list = Docker::Container.all
-      riak_containers = list.select{|r| r.info['Image'] == "hectcastro/riak:latest"}
+      riak_containers = list.select{|r| r.info['Image'] =~ /\Ahectcastro\/riak(\:.+)?\z/}
       @cids = riak_containers.map(&:id)
       @pb_ports = riak_containers.map do |r|
         map = r.info['Ports'].each_with_object({}){|rr,d| d[ rr['PrivatePort'] ] = rr['PublicPort']}
