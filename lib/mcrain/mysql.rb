@@ -52,9 +52,5 @@ module Mcrain
       return r
     end
 
-
-    def docker_extra_options
-      opts.compact.join(' ')
-    end
   end
 end

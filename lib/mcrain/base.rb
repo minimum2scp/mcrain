@@ -56,7 +56,6 @@ module Mcrain
     end
 
     def start
-      # clear_old_container
       run_container
       if block_given?
         begin
@@ -69,12 +68,6 @@ module Mcrain
         wait
         return self
       end
-    end
-
-    def clear_old_container
-      LoggerPipe.run(logger, "docker rm #{container_name}", timeout: 10)
-    rescue => e
-      logger.warn("[#{e.class}] #{e.message}")
     end
 
     # @return [Docker::Container]
@@ -95,18 +88,6 @@ module Mcrain
       return container
     end
 
-    def build_docker_command
-      "docker run #{build_docker_command_options} #{container_image}"
-    end
-
-    def build_docker_command_options
-      r = "-d -p #{port}:#{self.class.port} --name #{container_name}"
-      if ext = docker_extra_options
-        r << ext
-      end
-      r
-    end
-
     def build_docker_options
       {
         'Image' => container_image,
@@ -116,10 +97,6 @@ module Mcrain
           }
         }
       }
-    end
-
-    def docker_extra_options
-      nil
     end
 
     def wait
@@ -170,8 +147,6 @@ module Mcrain
     end
 
     def stop
-      # LoggerPipe.run(logger, "docker kill #{container_name}", timeout: 10)
-
       begin
         container.stop!
       rescue => e

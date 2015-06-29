@@ -28,10 +28,6 @@ module Mcrain
 
     attr_accessor :db_dir
 
-    def docker_extra_options
-      db_dir ? " -v #{File.expand_path(db_dir)}:/data" : nil
-    end
-
     def build_docker_options
       r = super
       if db_dir
