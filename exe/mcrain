@@ -4,8 +4,8 @@
 require "mcrain"
 
 action, service, *args  = *ARGV
+verbose = ARGV.include?('-V') || ARGV.include?('--verbose') 
 if action.nil? || service.nil?
-
   $stderr.puts(<<MESSAGE)
 #{$PROGRAM_NAME} <action> <target> [n] [-v or --verbose]
   action: start or stop
@@ -41,6 +41,7 @@ begin
   end
 rescue => e
   $stderr.puts "\e[31m[#{e.class}] #{e.message}\e[0m"
+  $stderr.puts e.backtrace.join("\n  ") if verbose
   exit(1)
 else
   $stderr.puts "\e[32mOK\e[0m"
