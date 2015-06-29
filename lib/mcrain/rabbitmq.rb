@@ -8,9 +8,16 @@ module Mcrain
     self.server_name = :rabbitmq
 
     self.container_image = "rabbitmq:3.4.4-management"
+    self.port = 15672
 
     def build_docker_command_options
       "-d -p #{runtime_port}:5672 -p #{port}:15672 --name #{container_name}"
+    end
+
+    def build_docker_options
+      r = super
+      r['HostConfig']['PortBindings']["5672/tcp"] = [{ 'HostPort': runtime_port }]
+      return r
     end
 
     def runtime_port
