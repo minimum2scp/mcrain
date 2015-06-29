@@ -6,6 +6,7 @@ require 'timeout'
 require 'socket'
 
 require 'logger_pipe'
+require 'docker'
 
 module Mcrain
   class Base
@@ -55,7 +56,7 @@ module Mcrain
     end
 
     def start
-      clear_old_container
+      # clear_old_container
       run_container
       if block_given?
         begin
@@ -76,8 +77,22 @@ module Mcrain
       logger.warn("[#{e.class}] #{e.message}")
     end
 
+    # @return [Docker::Container]
+    def container
+      unless @container
+        options = build_docker_options
+        Mcrain.logger.info("#{self.class.name}#run_container Docker::Container.create(#{options.inspect})")
+        @container = Docker::Container.create(options)
+      end
+      @container
+    end
+
     def run_container
-      LoggerPipe.run(logger, build_docker_command, timeout: 10)
+      Boot2docker.setup_docker_options
+
+      # LoggerPipe.run(logger, build_docker_command, timeout: 10)
+      container.start!
+      return container
     end
 
     def build_docker_command
@@ -90,6 +105,17 @@ module Mcrain
         r << ext
       end
       r
+    end
+
+    def build_docker_options
+      {
+        'Image' => container_image,
+        'HostConfig' => {
+          'PortBindings' => {
+            "#{self.class.port}/tcp": [{ 'HostPort': port.to_s }]
+          }
+        }
+      }
     end
 
     def docker_extra_options
@@ -144,7 +170,14 @@ module Mcrain
     end
 
     def stop
-      LoggerPipe.run(logger, "docker kill #{container_name}", timeout: 10)
+      # LoggerPipe.run(logger, "docker kill #{container_name}", timeout: 10)
+
+      begin
+        container.stop!
+      rescue => e
+        container.kill!
+      end
+      container.remove
       reset unless skip_reset_after_stop
     end
 
