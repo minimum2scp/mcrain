@@ -1,3 +1,0 @@
-[submodule "spec/support/docker-riak"]
-	path = spec/support/docker-riak
-	url = git@github.com:hectcastro/docker-riak.git
