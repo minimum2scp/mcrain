@@ -20,7 +20,7 @@ module Mcrain
       attr_accessor :container_image, :port
     end
 
-    attr_accessor :skip_reset_after_stop
+    attr_accessor :skip_reset_after_teardown
     def reset
       instance_variables.each do |var|
         instance_variable_set(var, nil)
@@ -56,13 +56,13 @@ module Mcrain
     end
 
     def start
-      run_container
+      setup
       if block_given?
         begin
           wait
           return yield(self)
         ensure
-          stop
+          teardown
         end
       else
         wait
@@ -74,16 +74,14 @@ module Mcrain
     def container
       unless @container
         options = build_docker_options
-        Mcrain.logger.info("#{self.class.name}#run_container Docker::Container.create(#{options.inspect})")
+        Mcrain.logger.info("#{self.class.name}#setup Docker::Container.create(#{options.inspect})")
         @container = Docker::Container.create(options)
       end
       @container
     end
 
-    def run_container
+    def setup
       Boot2docker.setup_docker_options
-
-      # LoggerPipe.run(logger, build_docker_command, timeout: 10)
       container.start!
       return container
     end
@@ -146,14 +144,14 @@ module Mcrain
       "#{client_class.name}.new(*#{client_init_args.inspect})"
     end
 
-    def stop
+    def teardown
       begin
         container.stop!
       rescue => e
         container.kill!
       end
       container.remove
-      reset unless skip_reset_after_stop
+      reset unless skip_reset_after_teardown
     end
 
     def logger
