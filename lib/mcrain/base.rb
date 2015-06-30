@@ -32,10 +32,6 @@ module Mcrain
       self.class.container_image or raise "No container_image for #{self.class.name}"
     end
 
-    def container_name
-      "test-#{self.class.server_name}"
-    end
-
     def host
       @host ||= URI.parse(ENV["DOCKER_HOST"] || "tcp://localhost").host
     end
