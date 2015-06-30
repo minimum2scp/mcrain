@@ -10,6 +10,7 @@ require 'docker'
 
 module Mcrain
   class Base
+    include ContainerController
     include ClientProvider
 
     class << self
@@ -21,6 +22,10 @@ module Mcrain
       attr_accessor :container_image, :port
     end
 
+    def logger
+      Mcrain.logger
+    end
+
     attr_accessor :skip_reset_after_teardown
     def reset
       instance_variables.each do |var|
@@ -28,34 +33,11 @@ module Mcrain
       end
     end
 
-    def container_image
-      self.class.container_image or raise "No container_image for #{self.class.name}"
-    end
-
-    def host
-      @host ||= URI.parse(ENV["DOCKER_HOST"] || "tcp://localhost").host
-    end
-
-    def find_portno
-      # 未使用のポートをシステムに割り当てさせてすぐ閉じてそれを利用する
-      tmpserv = TCPServer.new(0)
-      portno = tmpserv.local_address.ip_port
-      tmpserv.close
-      portno
-    end
-
-    def port
-      @port ||= find_portno
-    end
-
-    def url
-      @url ||= "#{self.class.server_name}://#{host}:#{port}"
-    end
-
     def start
       setup
       if block_given?
         begin
+          wait_port
           wait
           return yield(self)
         ensure
@@ -67,38 +49,20 @@ module Mcrain
       end
     end
 
-    # @return [Docker::Container]
-    def container
-      unless @container
-        options = build_docker_options
-        Mcrain.logger.info("#{self.class.name}#setup Docker::Container.create(#{options.inspect})")
-        @container = Docker::Container.create(options)
-      end
-      @container
-    end
-
     def setup
       Boot2docker.setup_docker_options
       container.start!
       return container
     end
 
-    def build_docker_options
-      {
-        'Image' => container_image,
-        'HostConfig' => {
-          'PortBindings' => {
-            "#{self.class.port}/tcp": [{ 'HostPort': port.to_s }]
-          }
-        }
-      }
+    # ポートがLISTENされるまで待つ
+    def wait_port
+      Mcrain.wait_port_opened(host, port, interval: 0.5, timeout: 30)
     end
 
+    # ポートはdockerがまずLISTENしておいて、その後コンテナ内のミドルウェアが起動するので、
+    # 実際にそのAPIを叩いてみて例外が起きないことを確認します。
     def wait
-      # ポートがLISTENされるまで待つ
-      Mcrain.wait_port_opened(host, port, interval: 0.5, timeout: 30)
-      # ポートはdockerがまずLISTENしておいて、その後コンテナ内のredisが起動するので、
-      # 実際にAPIを叩いてみて例外が起きないことを確認します。
       Timeout.timeout(30) do
         begin
           wait_for_ready
@@ -114,7 +78,6 @@ module Mcrain
       raise NotImplementedError
     end
 
-
     def teardown
       begin
         container.stop!
@@ -123,10 +86,6 @@ module Mcrain
       end
       container.remove
       reset unless skip_reset_after_teardown
-    end
-
-    def logger
-      Mcrain.logger
     end
 
   end
