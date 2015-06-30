@@ -13,15 +13,6 @@ module Mcrain
     include ContainerController
     include ClientProvider
 
-    class << self
-      attr_writer :server_name
-      def server_name
-        @server_name ||= self.name.split(/::/).last.underscore.to_sym
-      end
-
-      attr_accessor :container_image, :port
-    end
-
     def logger
       Mcrain.logger
     end

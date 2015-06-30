@@ -2,6 +2,19 @@
 module Mcrain
   module ContainerController
 
+    def self.included(klass)
+      klass.extend(ClassMethods)
+    end
+
+    module ClassMethods
+      attr_writer :server_name
+      def server_name
+        @server_name ||= self.name.split(/::/).last.underscore.to_sym
+      end
+
+      attr_accessor :container_image, :port
+    end
+
     # @return [Docker::Container]
     def container
       unless @container
