@@ -54,7 +54,7 @@ module Mcrain
         'Image' => container_image,
         'HostConfig' => {
           'PortBindings' => {
-            "#{self.class.port}/tcp": [{ 'HostPort': port.to_s }]
+            "#{self.class.port}/tcp" => [{ 'HostPort' => port.to_s }]
           }
         }
       }

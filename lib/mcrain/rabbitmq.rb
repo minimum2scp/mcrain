@@ -12,7 +12,7 @@ module Mcrain
 
     def build_docker_options
       r = super
-      r['HostConfig']['PortBindings']["5672/tcp"] = [{ 'HostPort': runtime_port }]
+      r['HostConfig']['PortBindings']["5672/tcp"] = [{ 'HostPort' => runtime_port.to_s }]
       return r
     end
 
