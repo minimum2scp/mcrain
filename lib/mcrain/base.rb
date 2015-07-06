@@ -41,14 +41,18 @@ module Mcrain
     end
 
     def setup
-      Boot2docker.setup_docker_options
-      container.start!
+      Timeout.timeout(30) do
+        Boot2docker.setup_docker_options
+        container.start!
+      end
       return container
     end
 
     # ポートがLISTENされるまで待つ
     def wait_port
-      Mcrain.wait_port_opened(host, port, interval: 0.5, timeout: 30)
+      nodes.each do |node|
+        Mcrain.wait_port_opened(node.host, node.port, interval: 0.5, timeout: 30)
+      end
     end
 
     # ポートはdockerがまずLISTENしておいて、その後コンテナ内のミドルウェアが起動するので、
@@ -70,13 +74,17 @@ module Mcrain
     end
 
     def teardown
+      stop_or_kill_and_remove
+      reset unless skip_reset_after_teardown
+    end
+
+    def stop_or_kill_and_remove
       begin
         container.stop!
       rescue => e
         container.kill!
       end
       container.remove
-      reset unless skip_reset_after_teardown
     end
 
   end

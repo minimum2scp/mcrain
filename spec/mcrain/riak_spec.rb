@@ -27,12 +27,12 @@ describe Mcrain::Riak do
 
   context "don't reset for first start" do
     it do
-      Mcrain[:riak].skip_reset_after_stop = true
-      expect(Mcrain[:riak].uris).to eq nil
+      Mcrain[:riak].skip_reset_after_teardown = true
       Mcrain[:riak].start do |s|
-        expect(s.uris).to_not be_nil
+        s.nodes.each do |node|
+          expect(node.ping).to be_truthy
+        end
       end
-      expect(Mcrain[:riak].uris).to_not be_nil
     end
   end
 
