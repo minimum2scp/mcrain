@@ -3,9 +3,9 @@
 Mcrain helps you to use docker container in test cases.
 It supports redis, rabbitmq and riak (stand alone node or clustering) currently.
 
-## prerequisite
+## Prerequisite
 
-### setup docker
+### Setup docker
 
 The docker daemon must be started with tcp socket option like `-H tcp://0.0.0.0:2375`.
 Because mcrain uses [Docker Remote API](https://docs.docker.com/reference/api/docker_remote_api/).
@@ -19,8 +19,6 @@ And add tcp option to DOCKER_OPTS like this:
 ```
 DOCKER_OPTS="-H unix:///var/run/docker.sock -H tcp://0.0.0.0:2375"
 ```
-
-Now mcrain doesn't support HTTPS protocol yet, so you can't use `--tls` option for this.
 
 For more information see the following documents:
 - https://docs.docker.com/reference/commandline/daemon/
