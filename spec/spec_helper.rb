@@ -15,3 +15,19 @@ require 'mcrain'
 Dir.mkdir("log") unless Dir.exist?("log")
 Mcrain.logger = Logger.new("log/test.log")
 Mcrain.logger.level = Logger::DEBUG
+
+
+## workaround for Circle CI
+## docker rm (removing btrfs snapshot) fails on Circle CI
+if ENV['CIRCLECI']
+  unless defined?(Docker::Container)
+    require 'docker'
+  end
+  class Docker::Container
+    def remove(options={})
+      # do not delete container
+    end
+    alias_method :delete, :remove
+  end
+end
+
