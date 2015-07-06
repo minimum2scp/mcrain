@@ -12,6 +12,12 @@ dependencies:
     - sudo service docker restart
     - gem install bundler --version '~> 1.9.9'
     - mkdir -p ~/docker
+    - if [[ -e ~/docker/mysql.tar ]]; then
+        docker load -i ~/docker/mysql.tar;
+      else
+        docker pull mysql:5.5;
+        docker save mysql:5.5 > ~/docker/mysql.tar;
+      fi
     - if [[ -e ~/docker/redis.tar ]]; then
         docker load -i ~/docker/redis.tar;
       else
