@@ -5,7 +5,7 @@ describe Mcrain::Rabbitmq do
 
   context ".start" do
     before(:all){ Mcrain[:rabbitmq].start }
-    after(:all){ Mcrain[:rabbitmq].stop }
+    after(:all){ Mcrain[:rabbitmq].teardown }
 
     let(:s){ Mcrain[:rabbitmq] }
     it "overview" do

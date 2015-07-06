@@ -77,12 +77,16 @@ module Mcrain
 
   autoload :Base, 'mcrain/base'
   autoload :Boot2docker, 'mcrain/boot2docker'
+  autoload :ContainerController, 'mcrain/container_controller'
+  autoload :ClientProvider, 'mcrain/client_provider'
 
   autoload :Riak, 'mcrain/riak'
   autoload :Redis, 'mcrain/redis'
   autoload :Rabbitmq, 'mcrain/rabbitmq'
+  autoload :Mysql, 'mcrain/mysql'
 
   register :riak, "Mcrain::Riak"
   register :redis, "Mcrain::Redis"
   register :rabbitmq, "Mcrain::Rabbitmq"
+  register :mysql, "Mcrain::Mysql"
 end

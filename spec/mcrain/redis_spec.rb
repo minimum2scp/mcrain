@@ -24,18 +24,18 @@ describe Mcrain::Redis do
     end
   end
 
-  context "skip_reset_after_stop" do
-    after{ Mcrain[:redis].skip_reset_after_stop = nil }
+  context "skip_reset_after_teardown" do
+    after{ Mcrain[:redis].skip_reset_after_teardown = nil }
 
     it false do
-      Mcrain[:redis].skip_reset_after_stop = false
+      Mcrain[:redis].skip_reset_after_teardown = false
       first_url = Mcrain[:redis].url
       Mcrain[:redis].start{ }
       expect(Mcrain[:redis].url).to_not eq first_url
     end
 
     it true do
-      Mcrain[:redis].skip_reset_after_stop = true
+      Mcrain[:redis].skip_reset_after_teardown = true
       first_url = Mcrain[:redis].url
       Mcrain[:redis].start{ }
       expect(Mcrain[:redis].url).to eq first_url

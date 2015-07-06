@@ -3,9 +3,43 @@
 Mcrain helps you to use docker container in test cases.
 It supports redis, rabbitmq and riak (stand alone node or clustering) currently.
 
-## prerequisite
+## Prerequisite
 
-- [docker](https://docs.docker.com/installation/#installation)
+### With boot2docker
+
+- [install docker into Mac](https://docs.docker.com/installation/mac/)
+- [install docker into Windows](https://docs.docker.com/installation/windows/)
+
+
+### Without boot2docker
+
+The docker daemon must be started with tcp socket option like `-H tcp://0.0.0.0:2375`.
+Because mcrain uses [Docker Remote API](https://docs.docker.com/reference/api/docker_remote_api/).
+
+After [installing docker](https://docs.docker.com/installation/#installation),
+edit the configuration file `/etc/default/docker` for Debian or Ubuntu,
+or `/etc/sysconfig/docker` for CentOS. 
+
+And add tcp option to DOCKER_OPTS like this:
+
+```
+DOCKER_OPTS="-H unix:///var/run/docker.sock -H tcp://0.0.0.0:2375"
+```
+
+Then restart the docker daemon.
+
+
+Set `DOCKER_HOST` environment variable for mcrain.
+```
+export DOCKER_HOST='tcp://127.0.0.1:2375'
+```
+
+The port num must be equal to the port of tcp option in DOCKER_OPTS.
+
+See the following documents for more information:
+- https://docs.docker.com/reference/commandline/daemon/
+- https://docs.docker.com/articles/networking/
+
 
 ## Installation
 
