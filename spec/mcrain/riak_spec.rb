@@ -53,7 +53,7 @@ describe Mcrain::Riak do
             s2.nodes.each{|node| expect(node.ping).to be_truthy}
             s2ports = s2.nodes.map(&:port)
             expect(s1ports - s2ports).to eq s1ports
-            expect(s2ports - s1ports).to eq s0ports
+            expect(s2ports - s1ports).to eq s2ports
           end
           s1.nodes.each{|node| expect(node.ping).to be_truthy}
           s0.nodes.each{|node| expect(node.ping).to be_truthy}
