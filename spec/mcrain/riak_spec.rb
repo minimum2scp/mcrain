@@ -36,4 +36,24 @@ describe Mcrain::Riak do
     end
   end
 
+  context "allow duplicated" do
+    it do
+      Mcrain[:riak].start do |s0|
+        s0.nodes.each do |node|
+          expect(node.ping).to be_truthy
+        end
+        Mcrain::Riak.new.start do |s1|
+          s1.nodes.each do |node|
+            expect(node.ping).to be_truthy
+          end
+          Mcrain::Riak.new.start do |s2|
+            s2.nodes.each do |node|
+              expect(node.ping).to be_truthy
+            end
+          end
+        end
+      end
+    end
+  end
+
 end
