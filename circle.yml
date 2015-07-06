@@ -10,7 +10,7 @@ dependencies:
   pre:
     - echo 'DOCKER_OPTS="$DOCKER_OPTS -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock"' | sudo tee -a /etc/default/docker
     - sudo service docker restart
-    - gem install bundler --version '~> 1.9.9'
+    - gem install bundler --version '~> 1.10.5'
     - mkdir -p ~/docker
     - if [[ -e ~/docker/mysql.tar ]]; then
         docker load -i ~/docker/mysql.tar;
