@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'mcrain'
 
 # require 'riak'
@@ -157,6 +158,13 @@ module Mcrain
         c.remove
       end
       reset unless skip_reset_after_teardown
+    end
+
+    # ポートがLISTENされるまで待つ
+    def wait_port
+      nodes.each do |node|
+        Mcrain.wait_port_opened(node.host, node.port, interval: 0.5, timeout: 30)
+      end
     end
 
   end

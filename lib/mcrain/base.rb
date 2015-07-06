@@ -50,9 +50,7 @@ module Mcrain
 
     # ポートがLISTENされるまで待つ
     def wait_port
-      nodes.each do |node|
-        Mcrain.wait_port_opened(node.host, node.port, interval: 0.5, timeout: 30)
-      end
+      Mcrain.wait_port_opened(host, port, interval: 0.5, timeout: 30)
     end
 
     # ポートはdockerがまずLISTENしておいて、その後コンテナ内のミドルウェアが起動するので、
