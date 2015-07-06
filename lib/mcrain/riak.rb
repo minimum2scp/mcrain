@@ -48,7 +48,7 @@ module Mcrain
 
       def build_docker_options
         r = super
-        r['HostConfig']['PortBindings']["8098/tcp"] = [{ 'HostPort': http_port.to_s }]
+        r['HostConfig']['PortBindings']["8098/tcp"] = [{ 'HostPort' => http_port.to_s }]
         envs = []
         envs << "RIAK_CLUSTER_SIZE=#{owner.cluster_size}"
         envs << "DOCKER_RIAK_AUTOMATIC_CLUSTERING=#{owner.automatic_clustering ? 1 : 0}"
