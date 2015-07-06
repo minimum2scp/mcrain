@@ -37,17 +37,20 @@ module Mcrain
     attr_accessor :database
     attr_accessor :username, :password
 
-    def docker_extra_options
-      opts = ['']
+    def build_docker_options
+      r = super
+
       username = self.username || "root" # overwrite locally
       key_user = (username == "root") ? nil                   : "MYSQL_USER"
       key_pw   = (username == "root") ? "MYSQL_ROOT_PASSWORD" : "MYSQL_PASSWORD"
-
-      opts << (password.blank? ? "-e MYSQL_ALLOW_EMPTY_PASSWORD=yes" : "-e #{key_pw}=#{password}")
-      opts << (key_user ? "-e #{key_user}=#{username}" : nil)
-      opts << "-e MYSQL_DATABASE=#{database}" if database
-      opts << "-v #{File.expand_path(db_dir)}:/var/lib/mysql" if db_dir
-      opts.compact.join(' ')
+      envs = []
+      envs << (password.blank? ? "MYSQL_ALLOW_EMPTY_PASSWORD=yes" : "#{key_pw}=#{password}")
+      envs << "#{key_user}=#{username}"  if key_user
+      envs << "MYSQL_DATABASE=#{database}" if database
+      envs << "#{File.expand_path(db_dir)}:/var/lib/mysql" if db_dir
+      r['Env'] = envs unless envs.empty?
+      return r
     end
+
   end
 end

@@ -77,6 +77,8 @@ module Mcrain
 
   autoload :Base, 'mcrain/base'
   autoload :Boot2docker, 'mcrain/boot2docker'
+  autoload :ContainerController, 'mcrain/container_controller'
+  autoload :ClientProvider, 'mcrain/client_provider'
 
   autoload :Riak, 'mcrain/riak'
   autoload :Redis, 'mcrain/redis'

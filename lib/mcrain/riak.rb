@@ -1,27 +1,84 @@
+# -*- coding: utf-8 -*-
 require 'mcrain'
 
 # require 'riak'
+require 'net/http'
 
 module Mcrain
   class Riak < Base
 
-    class << self
-      # path to clone of https://github.com/hectcastro/docker-riak
-      attr_accessor :docker_riak_path
-    end
-
     self.server_name = :riak
 
-    self.container_image = nil # not use docker directly
-    self.port = 8087
+    self.container_image = "hectcastro/riak"
 
-    def wait
-      build_uris
-      super
+    attr_accessor :automatic_clustering
+    attr_writer :cluster_size, :backend
+    def cluster_size
+      @cluster_size ||= 1
+    end
+    def backend
+      @backend ||= "bitcask" # "leveldb"
     end
 
-    def build_client
-      super{ build_uris }
+    # docker run -e "DOCKER_RIAK_CLUSTER_SIZE=${DOCKER_RIAK_CLUSTER_SIZE}" \
+    #            -e "DOCKER_RIAK_AUTOMATIC_CLUSTERING=${DOCKER_RIAK_AUTOMATIC_CLUSTERING}" \
+    #            -e "DOCKER_RIAK_BACKEND=${DOCKER_RIAK_BACKEND}" \
+    #            -p $publish_http_port \
+    #            -p $publish_pb_port \
+    #            --link "riak01:seed" \
+    #            --name "riak${index}" \
+    #            -d hectcastro/riak > /dev/null 2>&1
+    class Node
+      include ContainerController
+
+      self.container_image = "hectcastro/riak"
+
+      self.port = 8087 # protocol buffer
+      # self.http_port = 8098 # HTTP
+
+      attr_reader :owner
+      attr_accessor :primary_node
+      def initialize(owner)
+        @owner = owner
+      end
+
+      def http_port
+        @http_port ||= find_portno
+      end
+
+      def build_docker_options
+        r = super
+        r['HostConfig']['PortBindings']["8098/tcp"] = [{ 'HostPort' => http_port.to_s }]
+        envs = []
+        envs << "RIAK_CLUSTER_SIZE=#{owner.cluster_size}"
+        envs << "DOCKER_RIAK_AUTOMATIC_CLUSTERING=#{owner.automatic_clustering ? 1 : 0}"
+        envs << "DOCKER_RIAK_BACKEND=#{owner.backend}"
+        r['Env'] = envs unless envs.empty?
+        if primary_node
+          r['HostConfig']['Links'] = ["#{primary_node.container.name}:seed"]
+        end
+        return r
+      end
+
+      def ping
+        owner.logger.debug("sending a ping http://#{host}:#{http_port}/stats")
+        res = Net::HTTP.start(host, http_port) {|http| http.get('/stats') }
+        r = res.is_a?(Net::HTTPSuccess)
+        owner.logger.debug("#{res.inspect} #=> #{r}")
+        return r
+      rescue => e
+        return false
+      end
+    end
+
+    def nodes
+      unless @nodes
+        @nodes = (cluster_size || 1).times.map{ Node.new(self) }
+        array = @nodes.dup
+        primary_node = array.shift
+        array.each{|node| node.primary_node = primary_node}
+      end
+      @nodes
     end
 
     def client_class
@@ -29,53 +86,20 @@ module Mcrain
     end
 
     def client_init_args
-      options = {
-        nodes: uris.map{|uri| {host: uri.host, pb_port: uri.port} }
-      }
-      if uri = uris.first
-        if !uri.user.blank? or !uri.password.blank?
-          options[:authentication] = {user: uri.user, password: uri.password}
-        end
-      end
-      [options]
+      return [
+       {
+         nodes: nodes.map{|node| {host: node.host, pb_port: node.port} }
+       }
+      ]
     end
 
     def client_require
       'riak'
     end
 
-    def build_uris
-      # https://github.com/hectcastro/docker-riak/blob/develop/bin/test-cluster.sh#L9
-
-      # http://docs.docker.com/reference/api/docker_remote_api/
-      # https://github.com/boot2docker/boot2docker#ssh-into-vm
-      Boot2docker.setup_docker_options
-
-      uri = URI.parse(ENV["DOCKER_HOST"])
-      @host = (uri.scheme == "unix") ? "localhost" : uri.host
-      list = Docker::Container.all
-      riak_containers = list.select{|r| r.info['Image'] =~ /\Ahectcastro\/riak(\:.+)?\z/}
-      @cids = riak_containers.map(&:id)
-      @pb_ports = riak_containers.map do |r|
-        map = r.info['Ports'].each_with_object({}){|rr,d| d[ rr['PrivatePort'] ] = rr['PublicPort']}
-        map[8087]
-      end
-      @port = @pb_ports.first
-      @admin_uris = @cids.map do |cid|
-        r = Docker::Container.get(cid)
-        host = r.info["NetworkSettings"]["IPAddress"]
-        # login with insecure_key
-        # https://github.com/phusion/baseimage-docker#using-the-insecure-key-for-one-container-only
-        "ssh://root@#{host}:22"
-      end
-      @uris = @pb_ports.map do |port|
-        URI::Generic.build(scheme: "riak", host: @host, port: port)
-      end
-    end
-
     def wait_for_ready
       c = client
-      logger.debug("sending a ping")
+      logger.debug("sending a ping from client")
       begin
         r = c.ping
         raise "Ping failure with #{c.inspect}" unless r
@@ -105,54 +129,42 @@ module Mcrain
       end
     end
 
-    def clear_old_container
-    end
-
-    attr_reader :host, :cids, :pb_ports, :uris, :admin_uris
-    attr_accessor :automatic_clustering, :cluster_size
-
     def setup
-      w = @work_dir = Mcrain::Riak.docker_riak_path
-      raise "#{self.class.name}.docker_riak_path is blank. You have to set it to use the class" if w.blank?
-      raise "#{w}/Makefile not found" unless File.readable?(File.join(w, "Makefile"))
-      @prepare_cmd = Boot2docker.preparing_command
-      @automatic_clustering = false
-      @cluster_size = 1
-    end
-
-    def build_command
-      "DOCKER_RIAK_AUTOMATIC_CLUSTERING=#{automatic_clustering ? 1 : 0} DOCKER_RIAK_CLUSTER_SIZE=#{cluster_size} make start-cluster"
-    end
-
-    def run_container
-      setup
-      logger.debug("cd #{@work_dir.inspect}")
-      Dir.chdir(@work_dir) do
-        # http://basho.co.jp/riak-quick-start-with-docker/
-        #
-        # "Please wait approximately 30 seconds for the cluster to stabilize"
-        #   from https://gist.github.com/agutow/11133143#file-docker3-sh-L12
-        LoggerPipe.run(logger, "#{@prepare_cmd} #{build_command}")
-        sleep(1)
+      Boot2docker.setup_docker_options
+      nodes.map(&:container).each(&:start!)
+      # http://basho.co.jp/riak-quick-start-with-docker/
+      #
+      # "Please wait approximately 30 seconds for the cluster to stabilize"
+      #   from https://gist.github.com/agutow/11133143#file-docker3-sh-L12
+      sleep(30)
+      nodes.each do |node|
+        success = false
         20.times do
-          begin
-            LoggerPipe.run(logger, "#{@prepare_cmd} make test-cluster")
-            sleep(5)
-            return
-          rescue
-            sleep(0.5)
-            retry
-          end
+          success = node.ping
+          break if success
+          sleep(3)
         end
-        raise "failed to run a riak server"
+        raise "failed to run a riak server" unless success
       end
     end
 
-    def stop
-      Dir.chdir(@work_dir) do
-        LoggerPipe.run(logger, "#{@prepare_cmd} make stop-cluster")
+    def teardown
+      nodes.map(&:container).each do |c|
+        begin
+          c.stop!
+        rescue => e
+          c.kill!
+        end
+        c.remove
       end
-      reset unless skip_reset_after_stop
+      reset unless skip_reset_after_teardown
+    end
+
+    # ポートがLISTENされるまで待つ
+    def wait_port
+      nodes.each do |node|
+        Mcrain.wait_port_opened(node.host, node.port, interval: 0.5, timeout: 30)
+      end
     end
 
   end

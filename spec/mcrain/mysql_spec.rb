@@ -24,18 +24,18 @@ describe Mcrain::Mysql do
     end
   end
 
-  context "skip_reset_after_stop" do
-    after{ Mcrain[:mysql].skip_reset_after_stop = nil }
+  context "skip_reset_after_teardown" do
+    after{ Mcrain[:mysql].skip_reset_after_teardown = nil }
 
     it false do
-      Mcrain[:mysql].skip_reset_after_stop = false
+      Mcrain[:mysql].skip_reset_after_teardown = false
       first_url = Mcrain[:mysql].url
       Mcrain[:mysql].start{ }
       expect(Mcrain[:mysql].url).to_not eq first_url
     end
 
     it true do
-      Mcrain[:mysql].skip_reset_after_stop = true
+      Mcrain[:mysql].skip_reset_after_teardown = true
       first_url = Mcrain[:mysql].url
       Mcrain[:mysql].start{ }
       expect(Mcrain[:mysql].url).to eq first_url

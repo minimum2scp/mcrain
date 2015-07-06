@@ -6,63 +6,33 @@ require 'timeout'
 require 'socket'
 
 require 'logger_pipe'
+require 'docker'
 
 module Mcrain
   class Base
+    include ContainerController
+    include ClientProvider
 
-    class << self
-      attr_writer :server_name
-      def server_name
-        @server_name ||= self.name.split(/::/).last.underscore.to_sym
-      end
-
-      attr_accessor :container_image, :port
+    def logger
+      Mcrain.logger
     end
 
-    attr_accessor :skip_reset_after_stop
+    attr_accessor :skip_reset_after_teardown
     def reset
       instance_variables.each do |var|
         instance_variable_set(var, nil)
       end
     end
 
-    def container_image
-      self.class.container_image or raise "No container_image for #{self.class.name}"
-    end
-
-    def container_name
-      "test-#{self.class.server_name}"
-    end
-
-    def host
-      @host ||= URI.parse(ENV["DOCKER_HOST"] || "tcp://localhost").host
-    end
-
-    def find_portno
-      # 未使用のポートをシステムに割り当てさせてすぐ閉じてそれを利用する
-      tmpserv = TCPServer.new(0)
-      portno = tmpserv.local_address.ip_port
-      tmpserv.close
-      portno
-    end
-
-    def port
-      @port ||= find_portno
-    end
-
-    def url
-      @url ||= "#{self.class.server_name}://#{host}:#{port}"
-    end
-
     def start
-      clear_old_container
-      run_container
+      setup
       if block_given?
         begin
+          wait_port
           wait
           return yield(self)
         ensure
-          stop
+          teardown
         end
       else
         wait
@@ -70,37 +40,22 @@ module Mcrain
       end
     end
 
-    def clear_old_container
-      LoggerPipe.run(logger, "docker rm #{container_name}", timeout: 10)
-    rescue => e
-      logger.warn("[#{e.class}] #{e.message}")
-    end
-
-    def run_container
-      LoggerPipe.run(logger, build_docker_command, timeout: 10)
-    end
-
-    def build_docker_command
-      "docker run #{build_docker_command_options} #{container_image}"
-    end
-
-    def build_docker_command_options
-      r = "-d -p #{port}:#{self.class.port} --name #{container_name}"
-      if ext = docker_extra_options
-        r << ext
+    def setup
+      Timeout.timeout(30) do
+        Boot2docker.setup_docker_options
+        container.start!
       end
-      r
+      return container
     end
 
-    def docker_extra_options
-      nil
-    end
-
-    def wait
-      # ポートがLISTENされるまで待つ
+    # ポートがLISTENされるまで待つ
+    def wait_port
       Mcrain.wait_port_opened(host, port, interval: 0.5, timeout: 30)
-      # ポートはdockerがまずLISTENしておいて、その後コンテナ内のredisが起動するので、
-      # 実際にAPIを叩いてみて例外が起きないことを確認します。
+    end
+
+    # ポートはdockerがまずLISTENしておいて、その後コンテナ内のミドルウェアが起動するので、
+    # 実際にそのAPIを叩いてみて例外が起きないことを確認します。
+    def wait
       Timeout.timeout(30) do
         begin
           wait_for_ready
@@ -116,40 +71,18 @@ module Mcrain
       raise NotImplementedError
     end
 
-    def client
-      @client ||= build_client
+    def teardown
+      stop_or_kill_and_remove
+      reset unless skip_reset_after_teardown
     end
 
-    def build_client
-      require client_require
-      yield if block_given?
-      client_class.new(*client_init_args)
-    end
-
-    def client_require
-      raise NotImplementedError
-    end
-
-    def client_class
-      raise NotImplementedError
-    end
-
-    def client_init_args
-      raise NotImplementedError
-    end
-
-    def client_script
-      client
-      "#{client_class.name}.new(*#{client_init_args.inspect})"
-    end
-
-    def stop
-      LoggerPipe.run(logger, "docker kill #{container_name}", timeout: 10)
-      reset unless skip_reset_after_stop
-    end
-
-    def logger
-      Mcrain.logger
+    def stop_or_kill_and_remove
+      begin
+        container.stop!
+      rescue => e
+        container.kill!
+      end
+      container.remove
     end
 
   end
