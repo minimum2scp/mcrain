@@ -26,6 +26,7 @@ describe Mcrain::Riak do
   end
 
   context "don't reset for first start" do
+    after{ Mcrain[:riak].skip_reset_after_teardown = nil }
     it do
       Mcrain[:riak].skip_reset_after_teardown = true
       Mcrain[:riak].start do |s|
