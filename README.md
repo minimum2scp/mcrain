@@ -1,5 +1,7 @@
 # Mcrain
 
+[![Circle CI](https://circleci.com/gh/groovenauts/mcrain/tree/master.svg?style=svg)](https://circleci.com/gh/groovenauts/mcrain/tree/master)
+
 Mcrain helps you to use docker container in test cases.
 It supports redis, rabbitmq and riak (stand alone node or clustering) currently.
 
