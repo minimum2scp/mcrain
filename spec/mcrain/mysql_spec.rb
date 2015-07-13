@@ -27,8 +27,10 @@ describe Mcrain::Mysql do
       let(:tabledata1){ "FOO" }
 
       it do
+        old_cid = nil
         Mcrain[:mysql].db_dir = tmp_db_dir
         Mcrain[:mysql].start do |s|
+          old_cid = s.container.id
           c0 = s.build_client
           c0.query("CREATE DATABASE #{dbname}")
           c0.select_db(dbname)
@@ -37,6 +39,7 @@ describe Mcrain::Mysql do
         end
         Mcrain[:mysql].db_dir = tmp_db_dir
         Mcrain[:mysql].start do |s|
+          expect(s.container.id).to_not eq old_cid
           c1 = s.build_client
           c1.select_db(dbname)
           expect(c1.query("SELECT NAME FROM #{tablename}").map(&:to_hash)).to eq [{"NAME"=> tabledata1}]
