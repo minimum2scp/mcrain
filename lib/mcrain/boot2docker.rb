@@ -102,13 +102,18 @@ module Mcrain
         cmd1 = "mkdir -p #{dir}"
         Mcrain.logger.debug(cmd1)
         ssh.exec! cmd1
-        yield(dir) if block_given?
-        begin
-          cmd2 = "rm -rf #{dir}"
-          Mcrain.logger.debug(cmd2)
-          ssh.exec! cmd2
-        rescue => e
-          Mcrain.logger.warn("[#{e.class}] #{e.message}")
+        if block_given?
+          begin
+            yield(dir)
+          ensure
+            begin
+              cmd2 = "rm -rf #{dir}"
+              Mcrain.logger.debug(cmd2)
+              ssh.exec! cmd2
+            rescue => e
+              Mcrain.logger.warn("[#{e.class}] #{e.message}")
+            end
+          end
         end
         return dir
       end
@@ -116,17 +121,19 @@ module Mcrain
 
     def mktmpdir_local(*args)
       r = Dir.mktmpdir(*args)
-      begin
-        yield(r) if block_given?
-        return r
-      ensure
-        Mcrain.logger.debug("removing #{r}")
+      if block_given?
         begin
-          FileUtils.remove_entry_secure(r, true)
-        rescue => e
-          Mcrain.logger.warn("[#{e.class}] #{e.message}")
+          yield(r)
+        ensure
+          Mcrain.logger.debug("removing #{r}")
+          begin
+            FileUtils.remove_entry_secure(r, true)
+          rescue => e
+            Mcrain.logger.warn("[#{e.class}] #{e.message}")
+          end
         end
       end
+      return r
     end
 
   end
