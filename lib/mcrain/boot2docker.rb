@@ -74,7 +74,7 @@ module Mcrain
 
     # return temporary dire for 2nd argument of Dir.mktmpdir
     def tmpdir
-      used? ? BOOT2DOCKER_DOCKER_HOME : Dir.tmpdir
+      used? ? File.join(BOOT2DOCKER_DOCKER_HOME, 'tmp', Dir.tmpdir) : Dir.tmpdir
     end
 
   end
