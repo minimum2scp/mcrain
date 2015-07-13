@@ -3,6 +3,7 @@ require 'mcrain'
 require 'uri'
 require 'fileutils'
 require 'rbconfig'
+require 'tmpdir'
 
 require 'net/scp'
 require 'docker'
@@ -67,6 +68,13 @@ module Mcrain
           scp.download(src, dest)
         end
       end
+    end
+
+    BOOT2DOCKER_DOCKER_HOME = '/home/docker'.freeze
+
+    # return temporary dire for 2nd argument of Dir.mktmpdir
+    def tmpdir
+      used? ? BOOT2DOCKER_DOCKER_HOME : Dir.tmpdir
     end
 
   end
