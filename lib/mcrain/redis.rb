@@ -33,10 +33,7 @@ module Mcrain
     def build_docker_options
       r = super
       if db_dir && !db_dir.empty?
-        r['Volumes'] ||= {}
-        r['Volumes'][DB_DIR_ON_CONTAINER] = {}
-        r['HostConfig']['Binds'] ||= []
-        r['HostConfig']['Binds'] << "#{db_dir}:#{DB_DIR_ON_CONTAINER}"
+        add_volume_options(r, DB_DIR_ON_CONTAINER, db_dir)
       end
       return r
     end
