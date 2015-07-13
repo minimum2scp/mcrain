@@ -87,7 +87,10 @@ module Mcrain
     end
 
     def mktmpdir(&block)
-      return Dir.mktmpdir(&block) unless used?
+      used? ? mktmpdir_ssh(&block) : mktmpdir_local(&block)
+    end
+
+    def mktmpdir_ssh(&block)
       Dir.mktmpdir do |orig_dir|
         dir = File.join(BOOT2DOCKER_DOCKER_HOME, 'tmp', orig_dir)
         ssh_to_vm do |ssh|
@@ -104,6 +107,21 @@ module Mcrain
           end
         end
         return dir
+      end
+    end
+
+    def mktmpdir_local(*args)
+      r = Dir.mktmpdir(*args)
+      begin
+        yield(r) if block_given?
+        return r
+      ensure
+        Mcrain.logger.debug("removing #{r}")
+        begin
+          FileUtils.remove_entry_secure(r, true)
+        rescue => e
+          Mcrain.logger.warn("[#{e.class}] #{e.message}")
+        end
       end
     end
 
