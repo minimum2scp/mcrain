@@ -60,5 +60,13 @@ module Mcrain
       }
     end
 
+    def add_volume_options(r, path_on_container, path_on_host)
+      r['Volumes'] ||= {}
+      r['Volumes'][path_on_container] = {}
+      r['HostConfig']['Binds'] ||= []
+      r['HostConfig']['Binds'] << "#{path_on_host}:#{path_on_container}"
+      self
+    end
+
   end
 end

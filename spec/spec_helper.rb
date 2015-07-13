@@ -16,6 +16,7 @@ Dir.mkdir("log") unless Dir.exist?("log")
 Mcrain.logger = Logger.new("log/test.log")
 Mcrain.logger.level = Logger::DEBUG
 
+Dir[File.expand_path("../support/**/*.rb", __FILE__)].each { |f| require f }
 
 ## workaround for Circle CI
 ## docker rm (removing btrfs snapshot) fails on Circle CI
