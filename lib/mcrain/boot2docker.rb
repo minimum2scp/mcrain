@@ -3,8 +3,10 @@ require 'mcrain'
 require 'uri'
 require 'fileutils'
 require 'rbconfig'
+require 'tmpdir'
 
 require 'net/scp'
+require 'net/ssh'
 require 'docker'
 
 module Mcrain
@@ -31,7 +33,7 @@ module Mcrain
     end
 
     def setup_docker_options
-      if RbConfig::CONFIG["host_os"] =~ /darwin/
+      if used?
         require 'docker'
         uri = URI.parse(ENV["DOCKER_HOST"])
         Excon.defaults[:ssl_verify_peer] = false
@@ -67,6 +69,71 @@ module Mcrain
           scp.download(src, dest)
         end
       end
+    end
+
+    BOOT2DOCKER_DOCKER_HOME = '/home/docker'.freeze
+
+    # return temporary dire for 2nd argument of Dir.mktmpdir
+    def tmpdir
+      used? ? File.join(BOOT2DOCKER_DOCKER_HOME, 'tmp', Dir.tmpdir) : Dir.tmpdir
+    end
+
+    def ssh_to_vm(&block)
+      host = used? ? URI.parse(ENV["DOCKER_HOST"]).host : "localhost"
+      Mcrain.logger.debug("connection STARTING to #{host} by SSH")
+      r = Net::SSH.start(host, "docker", :password => "tcuser", &block)
+      Mcrain.logger.debug("connection SUCCESS  to #{host} by SSH")
+      return r
+    end
+
+    def mktmpdir(&block)
+      used? ? mktmpdir_ssh(&block) : mktmpdir_local(&block)
+    end
+
+    def mktmpdir_ssh(&block)
+      ssh_to_vm do |ssh|
+        return mktmpdir_remote(ssh, &block)
+      end
+    end
+
+    def mktmpdir_remote(ssh, &block)
+      Dir.mktmpdir do |orig_dir|
+        dir = File.join(BOOT2DOCKER_DOCKER_HOME, 'tmp', orig_dir)
+        cmd1 = "mkdir -p #{dir}"
+        Mcrain.logger.debug(cmd1)
+        ssh.exec! cmd1
+        if block_given?
+          begin
+            yield(dir)
+          ensure
+            begin
+              cmd2 = "rm -rf #{dir}"
+              Mcrain.logger.debug(cmd2)
+              ssh.exec! cmd2
+            rescue => e
+              Mcrain.logger.warn("[#{e.class}] #{e.message}")
+            end
+          end
+        end
+        return dir
+      end
+    end
+
+    def mktmpdir_local(*args)
+      r = Dir.mktmpdir(*args)
+      if block_given?
+        begin
+          yield(r)
+        ensure
+          Mcrain.logger.debug("removing #{r}")
+          begin
+            FileUtils.remove_entry_secure(r, true)
+          rescue => e
+            Mcrain.logger.warn("[#{e.class}] #{e.message}")
+          end
+        end
+      end
+      return r
     end
 
   end
