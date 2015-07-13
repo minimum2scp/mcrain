@@ -9,6 +9,19 @@ describe Mcrain::Redis do
         expect(s.client.ping).to eq "PONG"
       end
     end
+
+    after{ Mcrain[:redis].db_dir = nil }
+
+    it "with db_dir" do
+      redis_server = Mcrain[:redis].tap do |s|
+        s.db_dir = File.expand_path("../redis_spec/db_dir", __FILE__)
+      end
+      redis_server.start do |s|
+        expect(s.client.get("foo")).to eq '1000'
+        expect(s.client.get("bar")).to eq '2000'
+        expect(s.client.get("baz")).to eq '3000'
+      end
+    end
   end
 
   context "start twice" do
