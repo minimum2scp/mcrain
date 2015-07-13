@@ -91,20 +91,24 @@ module Mcrain
     end
 
     def mktmpdir_ssh(&block)
+      ssh_to_vm do |ssh|
+        return mktmpdir_remote(ssh, &block)
+      end
+    end
+
+    def mktmpdir_remote(ssh, &block)
       Dir.mktmpdir do |orig_dir|
         dir = File.join(BOOT2DOCKER_DOCKER_HOME, 'tmp', orig_dir)
-        ssh_to_vm do |ssh|
-          cmd1 = "mkdir -p #{dir}"
-          Mcrain.logger.debug(cmd1)
-          ssh.exec! cmd1
-          yield(dir) if block_given?
-          begin
-            cmd2 = "rm -rf #{dir}"
-            Mcrain.logger.debug(cmd2)
-            ssh.exec! cmd2
-          rescue => e
-            Mcrain.logger.warn("[#{e.class}] #{e.message}")
-          end
+        cmd1 = "mkdir -p #{dir}"
+        Mcrain.logger.debug(cmd1)
+        ssh.exec! cmd1
+        yield(dir) if block_given?
+        begin
+          cmd2 = "rm -rf #{dir}"
+          Mcrain.logger.debug(cmd2)
+          ssh.exec! cmd2
+        rescue => e
+          Mcrain.logger.warn("[#{e.class}] #{e.message}")
         end
         return dir
       end
