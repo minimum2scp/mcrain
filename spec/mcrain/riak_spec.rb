@@ -29,10 +29,14 @@ describe Mcrain::Riak do
     after{ Mcrain[:riak].skip_reset_after_teardown = nil }
     it do
       Mcrain[:riak].skip_reset_after_teardown = true
-      Mcrain[:riak].start do |s|
-        s.nodes.each do |node|
-          expect(node.ping).to be_truthy
+      begin
+        Mcrain[:riak].start do |s|
+          s.nodes.each do |node|
+            expect(node.ping).to be_truthy
+          end
         end
+      ensure
+        Mcrain[:riak].reset # manually
       end
     end
   end

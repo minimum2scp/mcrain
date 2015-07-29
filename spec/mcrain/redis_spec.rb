@@ -49,9 +49,13 @@ describe Mcrain::Redis do
 
     it true do
       Mcrain[:redis].skip_reset_after_teardown = true
-      first_url = Mcrain[:redis].url
-      Mcrain[:redis].start{ }
-      expect(Mcrain[:redis].url).to eq first_url
+      begin
+        first_url = Mcrain[:redis].url
+        Mcrain[:redis].start{ }
+        expect(Mcrain[:redis].url).to eq first_url
+      ensure
+        Mcrain[:redis].reset # reset manually
+      end
     end
   end
 
