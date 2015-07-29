@@ -31,6 +31,10 @@ module Mcrain
           wait_port
           wait
           return yield(self)
+        rescue Exception => e
+          logs = container.logs(stdout: 1, stderr: 1)
+          logger.error("[#{e.class.name}] #{e.message}\nthe container logs...\n#{logs}")
+          raise e
         ensure
           teardown
         end

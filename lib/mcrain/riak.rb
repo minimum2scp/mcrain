@@ -144,7 +144,14 @@ module Mcrain
           break if success
           sleep(3)
         end
-        raise "failed to run a riak server" unless success
+        unless success
+          msg = "failed to run a riak server"
+          timeout(10) do
+            logs = node.container.logs(stdout: 1, stderr: 1)
+            logger.error("#{msg}\nthe container logs...\n#{logs}")
+          end
+          raise msg
+        end
       end
     end
 
