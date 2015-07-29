@@ -69,6 +69,12 @@ module Mcrain
       rescue => e
         return false
       end
+
+      def reset
+        instance_variables.each do |var|
+          instance_variable_set(var, nil)
+        end
+      end
     end
 
     def nodes
@@ -79,6 +85,11 @@ module Mcrain
         array.each{|node| node.primary_node = primary_node}
       end
       @nodes
+    end
+
+    def reset
+      (@nodes || []).each(&:reset)
+      super
     end
 
     def client_class
