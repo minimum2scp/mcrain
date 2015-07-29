@@ -55,4 +55,15 @@ describe Mcrain::Redis do
     end
   end
 
+  # docker inspect -f "{{.NetworkSettings.IPAddress}}\t{{.Config.Hostname}}\t#{{.Name}}\t({{.Config.Image}})" `docker ps -q`
+  context ".NetworkSettings.IPAddress" do
+    it do
+      Mcrain[:redis].start do |s|
+        ip = s.ip
+        expect(ip).to_not eq s.host
+        expect(s.ssh_uri).to eq "ssh://root@#{ip}:22"
+      end
+    end
+  end
+
 end
