@@ -29,10 +29,14 @@ describe Mcrain::Riak do
     after{ Mcrain[:riak].skip_reset_after_teardown = nil }
     it do
       Mcrain[:riak].skip_reset_after_teardown = true
-      Mcrain[:riak].start do |s|
-        s.nodes.each do |node|
-          expect(node.ping).to be_truthy
+      begin
+        Mcrain[:riak].start do |s|
+          s.nodes.each do |node|
+            expect(node.ping).to be_truthy
+          end
         end
+      ensure
+        Mcrain[:riak].reset # manually
       end
     end
   end
@@ -60,6 +64,20 @@ describe Mcrain::Riak do
           s0.nodes.each{|node| expect(node.ping).to be_truthy}
         end
         s0.nodes.each{|node| expect(node.ping).to be_truthy}
+      end
+    end
+  end
+
+  # docker inspect -f "{{.NetworkSettings.IPAddress}}\t{{.Config.Hostname}}\t#{{.Name}}\t({{.Config.Image}})" `docker ps -q`
+  context ".NetworkSettings.IPAddress" do
+    after{ Mcrain[:riak].skip_reset_after_teardown = nil }
+    it do
+      Mcrain[:riak].start do |s|
+        s.nodes.each do |node|
+          ip = node.ip
+          expect(ip).to_not eq node.host
+          expect(node.ssh_uri).to eq "ssh://root@#{ip}:22"
+        end
       end
     end
   end

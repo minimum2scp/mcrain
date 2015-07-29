@@ -69,6 +69,12 @@ module Mcrain
       rescue => e
         return false
       end
+
+      def reset
+        instance_variables.each do |var|
+          instance_variable_set(var, nil)
+        end
+      end
     end
 
     def nodes
@@ -79,6 +85,11 @@ module Mcrain
         array.each{|node| node.primary_node = primary_node}
       end
       @nodes
+    end
+
+    def reset
+      (@nodes || []).each(&:reset)
+      super
     end
 
     def client_class
@@ -144,7 +155,14 @@ module Mcrain
           break if success
           sleep(3)
         end
-        raise "failed to run a riak server" unless success
+        unless success
+          msg = "failed to run a riak server"
+          timeout(10) do
+            logs = node.container.logs(stdout: 1, stderr: 1)
+            logger.error("#{msg}\nthe container logs...\n#{logs}")
+          end
+          raise msg
+        end
       end
     end
 

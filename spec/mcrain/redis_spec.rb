@@ -49,9 +49,24 @@ describe Mcrain::Redis do
 
     it true do
       Mcrain[:redis].skip_reset_after_teardown = true
-      first_url = Mcrain[:redis].url
-      Mcrain[:redis].start{ }
-      expect(Mcrain[:redis].url).to eq first_url
+      begin
+        first_url = Mcrain[:redis].url
+        Mcrain[:redis].start{ }
+        expect(Mcrain[:redis].url).to eq first_url
+      ensure
+        Mcrain[:redis].reset # reset manually
+      end
+    end
+  end
+
+  # docker inspect -f "{{.NetworkSettings.IPAddress}}\t{{.Config.Hostname}}\t#{{.Name}}\t({{.Config.Image}})" `docker ps -q`
+  context ".NetworkSettings.IPAddress" do
+    it do
+      Mcrain[:redis].start do |s|
+        ip = s.ip
+        expect(ip).to_not eq s.host
+        expect(s.ssh_uri).to eq "ssh://root@#{ip}:22"
+      end
     end
   end
 

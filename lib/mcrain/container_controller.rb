@@ -68,5 +68,12 @@ module Mcrain
       self
     end
 
+    def ip
+      container.json["NetworkSettings"]["IPAddress"]
+    end
+
+    def ssh_uri
+      "ssh://root@#{ip}:22"
+    end
   end
 end

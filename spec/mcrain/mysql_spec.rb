@@ -74,9 +74,13 @@ describe Mcrain::Mysql do
 
     it true do
       Mcrain[:mysql].skip_reset_after_teardown = true
-      first_url = Mcrain[:mysql].url
-      Mcrain[:mysql].start{ }
-      expect(Mcrain[:mysql].url).to eq first_url
+      begin
+        first_url = Mcrain[:mysql].url
+        Mcrain[:mysql].start{ }
+        expect(Mcrain[:mysql].url).to eq first_url
+      ensure
+        Mcrain[:mysql].reset
+      end
     end
   end
 
