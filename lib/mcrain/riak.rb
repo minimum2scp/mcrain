@@ -142,8 +142,11 @@ module Mcrain
 
     def setup
       Boot2docker.setup_docker_options
-      setup_nodes(nodes[0, 1]) # primary node
-      setup_nodes(nodes[1..-1])
+      # setup_nodes(nodes[0, 1]) # primary node
+      # setup_nodes(nodes[1..-1])
+      nodes.each do |node|
+        setup_nodes([node])
+      end
     end
 
     def setup_nodes(nodes)
