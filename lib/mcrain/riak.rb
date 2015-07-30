@@ -50,12 +50,12 @@ module Mcrain
         r = super
         r['HostConfig']['PortBindings']["8098/tcp"] = [{ 'HostPort' => http_port.to_s }]
         envs = []
-        envs << "RIAK_CLUSTER_SIZE=#{owner.cluster_size}"
+        envs << "DOCKER_RIAK_CLUSTER_SIZE=#{owner.cluster_size}"
         envs << "DOCKER_RIAK_AUTOMATIC_CLUSTERING=#{owner.automatic_clustering ? 1 : 0}"
         envs << "DOCKER_RIAK_BACKEND=#{owner.backend}"
         r['Env'] = envs unless envs.empty?
         if primary_node
-          r['HostConfig']['Links'] = ["#{primary_node.container.name}:seed"]
+          r['HostConfig']['Links'] = ["#{primary_node.name}:seed"]
         end
         return r
       end
@@ -142,7 +142,15 @@ module Mcrain
 
     def setup
       Boot2docker.setup_docker_options
-      nodes.map(&:container).each(&:start!)
+      setup_nodes(nodes[0, 1]) # primary node
+      setup_nodes(nodes[1..-1])
+    end
+
+    def setup_nodes(nodes)
+      return if nodes.empty?
+      containers = nodes.map(&:container)
+      containers.each(&:start!)
+
       # http://basho.co.jp/riak-quick-start-with-docker/
       #
       # "Please wait approximately 30 seconds for the cluster to stabilize"
@@ -164,6 +172,7 @@ module Mcrain
           raise msg
         end
       end
+      logger.info("container started: " << containers.map{|c| c.json}.join("\n"))
     end
 
     def teardown

@@ -68,8 +68,16 @@ module Mcrain
       self
     end
 
+    def info
+      container.json
+    end
+
+    def name
+      info["Name"] # .sub(/\A\//, '')
+    end
+
     def ip
-      container.json["NetworkSettings"]["IPAddress"]
+      info["NetworkSettings"]["IPAddress"]
     end
 
     def ssh_uri
