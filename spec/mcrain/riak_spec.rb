@@ -23,6 +23,21 @@ describe Mcrain::Riak do
         expect(s.client).to_not eq first
       end
     end
+
+    it "clustering" do
+      riak = Mcrain::Riak.new
+      riak.cluster_size = 5
+      riak.automatic_clustering = true
+      riak.start do |s|
+        c = s.client
+        obj1 = c.bucket("bucket1").get_or_new("foo")
+        obj1.data = data
+        obj1.store
+        obj2 = c.bucket("bucket1").get_or_new("foo")
+        expect(obj2.content_type).to eq "application/json"
+        expect(JSON.parse(obj2.raw_data)).to eq data
+      end
+    end
   end
 
   context "don't reset for first start" do
