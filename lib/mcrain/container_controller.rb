@@ -13,6 +13,12 @@ module Mcrain
       end
 
       attr_accessor :container_image, :port
+
+      def pull_image
+        Timeout.timeout(10.minutes) do
+          LoggerPipe.run(Mcrain.logger, "docker pull #{container_image}")
+        end
+      end
     end
 
     # @return [Docker::Container]

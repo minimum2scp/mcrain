@@ -4,13 +4,21 @@
 require "mcrain"
 
 action, service, *args  = *ARGV
-verbose = ARGV.include?('-V') || ARGV.include?('--verbose') 
+verbose = ARGV.include?('-V') || ARGV.include?('--verbose')
 if action.nil? || service.nil?
   $stderr.puts(<<MESSAGE)
-#{$PROGRAM_NAME} <action> <target> [n] [-v or --verbose]
-  action: start or stop
-  service: redis, rabbitmq, mysql or riak
-  n: cluster size for riak
+#{$PROGRAM_NAME} <action> <service> [n] [-v or --verbose]
+  actions: start, stop or pull
+
+  start:
+    service: redis, rabbitmq, mysql or riak
+      n: cluster size for riak
+
+  stop:
+    service: redis, rabbitmq, mysql or riak
+
+  pull:
+    service: redis, rabbitmq, mysql, riak or all
 MESSAGE
 
   exit(1)
@@ -30,8 +38,16 @@ begin
     options = {cluster_size: cluster_size, automatic_clustering: cluster_size > 1}
   end
 
-  server = Mcrain.lookup(service.to_sym, options)
-  server.send(action)
+  case action
+  when "start", "stop" then
+    server = Mcrain.lookup(service.to_sym, options)
+    server.send(action)
+  when "pull" then
+    services = (service == "all") ? [:mysql, :redis, :rabbitmq, :riak] : [service.to_sym]
+    services.map{|s| Mcrain.class_for(s.to_sym)}.each(&:pull_image)
+  else
+    raise "Unknown action: #{action.inspect}"
+  end
 
   case action
   when "start" then

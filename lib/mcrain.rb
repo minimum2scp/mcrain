@@ -8,6 +8,7 @@ require 'logger_pipe'
 require 'active_support/inflector/inflections'
 require 'active_support/core_ext/class/subclasses'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/numeric/time'
 
 module Mcrain
   class << self
@@ -43,14 +44,6 @@ module Mcrain
 
     def instances
       @instances ||= {}
-    end
-
-    def pull_images
-      Mcrain::Base.descendants.each do |klass|
-        Timeout.timeout(10.minutes) do
-          LoggerPipe.run(logger, "docker pull #{klass.container_image}")
-        end
-      end
     end
 
     attr_writer :logger
