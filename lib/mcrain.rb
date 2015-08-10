@@ -46,6 +46,18 @@ module Mcrain
       @instances ||= {}
     end
 
+    DEFAULT_IMAGES = {
+      mysql: "mysql:5.5",
+      redis: "redis:2.8.19",
+      rabbitmq: "rabbitmq:3.4.4-management",
+      riak: "hectcastro/riak",
+    }.freeze
+
+    def images
+      @images ||= DEFAULT_IMAGES.dup
+    end
+    attr_writer :images
+
     attr_writer :logger
     def logger
       @logger ||= Logger.new($stderr)

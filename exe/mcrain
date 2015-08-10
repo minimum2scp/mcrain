@@ -43,8 +43,8 @@ begin
     server = Mcrain.lookup(service.to_sym, options)
     server.send(action)
   when "pull" then
-    services = (service == "all") ? [:mysql, :redis, :rabbitmq, :riak] : [service.to_sym]
-    services.map{|s| Mcrain.class_for(s.to_sym)}.each(&:pull_image)
+    services = (service == "all") ? Mcrain.images.keys : [service]
+    services.map(&:to_sym).map{|s| Mcrain.class_for(s)}.each(&:pull_image)
   else
     raise "Unknown action: #{action.inspect}"
   end

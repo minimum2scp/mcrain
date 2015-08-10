@@ -9,8 +9,6 @@ module Mcrain
 
     self.server_name = :riak
 
-    self.container_image = "hectcastro/riak"
-
     attr_accessor :automatic_clustering
     attr_writer :cluster_size, :backend
     def cluster_size
