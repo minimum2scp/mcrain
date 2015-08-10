@@ -7,7 +7,6 @@ module Mcrain
   class Redis < Base
     self.server_name = :redis
 
-    self.container_image = "redis:2.8.19"
     self.port = 6379
 
     def client_require

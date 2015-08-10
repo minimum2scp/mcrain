@@ -12,7 +12,17 @@ module Mcrain
         @server_name ||= self.name.split(/::/).last.underscore.to_sym
       end
 
-      attr_accessor :container_image, :port
+      def container_image
+        @container_image ||= Mcrain.images[server_name]
+      end
+      attr_writer :container_image
+      attr_accessor :port
+
+      def pull_image
+        Timeout.timeout(10.minutes) do
+          LoggerPipe.run(Mcrain.logger, "docker pull #{container_image}")
+        end
+      end
     end
 
     # @return [Docker::Container]

@@ -7,7 +7,6 @@ module Mcrain
   class Rabbitmq < Base
     self.server_name = :rabbitmq
 
-    self.container_image = "rabbitmq:3.4.4-management"
     self.port = 15672
 
     def build_docker_options

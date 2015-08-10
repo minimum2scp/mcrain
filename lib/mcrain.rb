@@ -8,6 +8,7 @@ require 'logger_pipe'
 require 'active_support/inflector/inflections'
 require 'active_support/core_ext/class/subclasses'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/numeric/time'
 
 module Mcrain
   class << self
@@ -45,13 +46,17 @@ module Mcrain
       @instances ||= {}
     end
 
-    def pull_images
-      Mcrain::Base.descendants.each do |klass|
-        Timeout.timeout(10.minutes) do
-          LoggerPipe.run(logger, "docker pull #{klass.container_image}")
-        end
-      end
+    DEFAULT_IMAGES = {
+      mysql: "mysql:5.5",
+      redis: "redis:2.8.19",
+      rabbitmq: "rabbitmq:3.4.4-management",
+      riak: "hectcastro/riak",
+    }.freeze
+
+    def images
+      @images ||= DEFAULT_IMAGES.dup
     end
+    attr_writer :images
 
     attr_writer :logger
     def logger
