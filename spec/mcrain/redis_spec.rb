@@ -14,10 +14,9 @@ describe Mcrain::Redis do
 
     it "with db_dir" do
       Mcrain::Boot2docker.mktmpdir do |dir|
-        tmp_db_dir = File.join(dir, "db_dir")
-        FileUtils.cp_r(File.expand_path("../redis_spec/db_dir", __FILE__), tmp_db_dir)
+        Mcrain::Boot2docker.cp_r(File.expand_path("../redis_spec/db_dir", __FILE__), dir)
         redis_server = Mcrain[:redis].tap do |s|
-          s.db_dir = tmp_db_dir
+          s.db_dir = File.join(dir, "db_dir")
         end
         redis_server.start do |s|
           expect(s.client.get("foo")).to eq '1000'
