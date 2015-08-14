@@ -64,11 +64,15 @@ module Mcrain
     def download_files_from_vm(host, files)
       return if files.values.all?{|f| File.readable?(f)}
       files.values.each{|f| FileUtils.mkdir_p(File.dirname(f))}
-      Net::SCP.start(host, "docker", :password => "tcuser") do |scp|
+      scp_connect(host) do |scp|
         files.each do |src, dest|
           scp.download(src, dest)
         end
       end
+    end
+
+    def scp_connect(host, &block)
+      Net::SCP.start(host, "docker", :password => "tcuser", &block)
     end
 
     BOOT2DOCKER_DOCKER_HOME = '/home/docker'.freeze
@@ -134,6 +138,31 @@ module Mcrain
         end
       end
       return r
+    end
+
+    def cp_r(src, dest)
+      used? ? cp_r_remote(src, dest) : cp_r_local(src, dest)
+    end
+
+    def cp_r_remote(src, dest)
+      Dir.mktmpdir("for_tarball") do |dir|
+        tarball_name = "#{File.basename(src)}.tar.gz"
+        FileUtils.chdir(dir) do
+          FileUtils.cp_r(src, ".")
+          unless system("tar zcf #{tarball_name} #{File.basename(src)}")
+            raise "failed to create tarball of #{src} to #{dir}"
+          end
+        end
+        host = URI.parse(ENV["DOCKER_HOST"]).host
+        scp_connect(host) do |scp|
+          scp.upload!(File.join(dir, tarball_name), dest)
+          scp.session.exec!("cd #{dest} && tar zxf #{tarball_name}")
+        end
+      end
+    end
+
+    def cp_r_local(src, dest)
+      FileUtils.cp_r(src, dest)
     end
 
   end
