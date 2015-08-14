@@ -13,13 +13,17 @@ describe Mcrain::Redis do
     after{ Mcrain[:redis].db_dir = nil }
 
     it "with db_dir" do
-      redis_server = Mcrain[:redis].tap do |s|
-        s.db_dir = File.expand_path("../redis_spec/db_dir", __FILE__)
-      end
-      redis_server.start do |s|
-        expect(s.client.get("foo")).to eq '1000'
-        expect(s.client.get("bar")).to eq '2000'
-        expect(s.client.get("baz")).to eq '3000'
+      Mcrain::Boot2docker.mktmpdir do |dir|
+        tmp_db_dir = File.join(dir, "db_dir")
+        FileUtils.cp_r(File.expand_path("../redis_spec/db_dir", __FILE__), tmp_db_dir)
+        redis_server = Mcrain[:redis].tap do |s|
+          s.db_dir = tmp_db_dir
+        end
+        redis_server.start do |s|
+          expect(s.client.get("foo")).to eq '1000'
+          expect(s.client.get("bar")).to eq '2000'
+          expect(s.client.get("baz")).to eq '3000'
+        end
       end
     end
   end
