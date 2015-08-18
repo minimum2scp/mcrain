@@ -13,8 +13,8 @@ describe Mcrain::Redis do
     after{ Mcrain[:redis].db_dir = nil }
 
     it "with db_dir" do
-      Mcrain::Boot2docker.mktmpdir do |dir|
-        Mcrain::Boot2docker.cp_r(File.expand_path("../redis_spec/db_dir", __FILE__), dir)
+      Mcrain::DockerMachine.mktmpdir do |dir|
+        Mcrain::DockerMachine.cp_r(File.expand_path("../redis_spec/db_dir", __FILE__), dir)
         redis_server = Mcrain[:redis].tap do |s|
           s.db_dir = File.join(dir, "db_dir")
         end

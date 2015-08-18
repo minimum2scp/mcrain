@@ -14,7 +14,7 @@ describe Mcrain::Mysql do
 
     context "with db_dir" do
       around do |example|
-        Mcrain::Boot2docker.mktmpdir do |dir|
+        Mcrain::DockerMachine.mktmpdir do |dir|
           @tmp_db_dir = dir
           example.run
         end

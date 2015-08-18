@@ -10,7 +10,7 @@ require 'net/ssh'
 require 'docker'
 
 module Mcrain
-  module Boot2docker
+  module DockerMachine
 
     class << self
       attr_accessor :certs_dir
@@ -29,7 +29,7 @@ module Mcrain
 
     def preparing_command
       return "" unless used?
-      name = Mcrain::Boot2docker.docker_machine_name
+      name = Mcrain::DockerMachine.docker_machine_name
       unless `docker-machine status #{name}`.strip.downcase == "running"
         raise "docker-machine #{name} is not running. Please `docker-machine start #{name}`"
       end
@@ -50,7 +50,7 @@ module Mcrain
     end
 
     def build_docker_options(uri)
-      d = Boot2docker.certs_dir
+      d = DockerMachine.certs_dir
       cert_path = File.join(d, "cert.pem")
       key_path = File.join(d, "key.pem")
       files = {
@@ -67,6 +67,9 @@ module Mcrain
 
     # http://docs.docker.com/reference/api/docker_remote_api/
     # https://github.com/boot2docker/boot2docker#ssh-into-vm
+    #
+    # can't find tcuser in virtualbox...
+    # https://github.com/docker/machine/blob/master/drivers/vmwarefusion/fusion_darwin.go#L28
     def download_files_from_vm(host, files)
       return if files.values.all?{|f| File.readable?(f)}
       files.values.each{|f| FileUtils.mkdir_p(File.dirname(f))}
@@ -81,11 +84,11 @@ module Mcrain
       Net::SCP.start(host, "docker", :password => "tcuser", &block)
     end
 
-    BOOT2DOCKER_DOCKER_HOME = '/home/docker'.freeze
+    DOCKER_MACHINE_DOCKER_HOME = '/home/docker'.freeze
 
     # return temporary dire for 2nd argument of Dir.mktmpdir
     def tmpdir
-      used? ? File.join(BOOT2DOCKER_DOCKER_HOME, 'tmp', Dir.tmpdir) : Dir.tmpdir
+      used? ? File.join(DOCKER_MACHINE_DOCKER_HOME, 'tmp', Dir.tmpdir) : Dir.tmpdir
     end
 
     def ssh_to_vm(&block)
@@ -108,7 +111,7 @@ module Mcrain
 
     def mktmpdir_remote(ssh, &block)
       Dir.mktmpdir do |orig_dir|
-        dir = File.join(BOOT2DOCKER_DOCKER_HOME, 'tmp', orig_dir)
+        dir = File.join(DOCKER_MACHINE_DOCKER_HOME, 'tmp', orig_dir)
         cmd1 = "mkdir -p #{dir}"
         Mcrain.logger.debug(cmd1)
         ssh.exec! cmd1

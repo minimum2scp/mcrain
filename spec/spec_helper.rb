@@ -1,7 +1,7 @@
 require "pry"
 
 unless ENV['DOCKER_HOST']
-  raise 'DOCKER_HOST is not exported. use `$(boot2docker shellinit)` or set DOCKER_HOST like tcp://127.0.0.1:2375'
+  raise 'DOCKER_HOST is not exported. use `$(docker-machine env default)` or set DOCKER_HOST like tcp://127.0.0.1:2375'
 end
 
 if ENV["COVERAGE"] =~ /true|yes|on|1/i
