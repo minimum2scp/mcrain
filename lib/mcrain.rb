@@ -81,7 +81,7 @@ module Mcrain
   end
 
   autoload :Base, 'mcrain/base'
-  autoload :DockerMachine, 'mcrain/boot2docker'
+  autoload :DockerMachine, 'mcrain/docker_machine'
   autoload :ContainerController, 'mcrain/container_controller'
   autoload :ClientProvider, 'mcrain/client_provider'
 
