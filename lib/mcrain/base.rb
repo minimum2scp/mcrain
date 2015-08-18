@@ -46,7 +46,7 @@ module Mcrain
 
     def setup
       Timeout.timeout(30) do
-        Boot2docker.setup_docker_options
+        DockerMachine.setup_docker_options
         container.start!
       end
       return container

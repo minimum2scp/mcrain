@@ -7,13 +7,13 @@ It supports redis, rabbitmq and riak (stand alone node or clustering) currently.
 
 ## Prerequisite
 
-### With boot2docker
+### With docker-machine
 
 - [install docker into Mac](https://docs.docker.com/installation/mac/)
 - [install docker into Windows](https://docs.docker.com/installation/windows/)
 
 
-### Without boot2docker
+### Without docker-machine
 
 The docker daemon must be started with tcp socket option like `-H tcp://0.0.0.0:2375`.
 Because mcrain uses [Docker Remote API](https://docs.docker.com/reference/api/docker_remote_api/).
