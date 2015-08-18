@@ -14,8 +14,12 @@ module Mcrain
 
     class << self
       attr_accessor :certs_dir
+
+      def docker_machine_name
+        ENV['DOCKER_MACHINE_NAME']
+      end
     end
-    self.certs_dir = File.expand_path('.boot2docker/certs/boot2docker-vm', ENV["HOME"])
+    self.certs_dir = File.expand_path('.docker/machine/certs', ENV["HOME"])
 
     module_function
 
@@ -25,10 +29,12 @@ module Mcrain
 
     def preparing_command
       return "" unless used?
-      unless `boot2docker status`.strip == "running"
-        raise "boot2docker is not running. Please `boot2docker start`"
+      name = Mcrain::Boot2docker.docker_machine_name
+      unless `docker-machine status #{name}`.strip.downcase == "running"
+        raise "docker-machine #{name} is not running. Please `docker-machine start #{name}`"
       end
-      exports = `boot2docker shellinit 2>/dev/null`.strip.split(/\n/)
+      exports = `docker-machine env #{name} 2>/dev/null`.strip.split(/\n/).
+        select{|line| line =~ /\Aexport /}
       exports.empty? ? '' : "%s && " % exports.join(" && ")
     end
 
