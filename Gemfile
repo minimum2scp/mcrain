@@ -24,4 +24,5 @@ group :development do
   gem "pry-stack_explorer"
   gem "simplecov"
   gem "fuubar"
+  gem "parallel_tests"
 end
