@@ -41,6 +41,7 @@ build:
               docker pull redis:2.8.19
               docker pull rabbitmq:3.4.4-management
               docker pull hectcastro/riak:latest
+              docker images
         - bundle-install
         - script:
             name: rake spec
