@@ -15,7 +15,7 @@ group :development do
   gem "riak-client"
 
   # for mysql
-  gem "mysql2"
+  gem "mysql2", "~> 0.3.20"
 end
 
 group :development do
