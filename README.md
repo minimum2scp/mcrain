@@ -170,6 +170,26 @@ $ mcrain stop riak 5
 OK
 ```
 
+## Mcrain.before_setup
+
+Use Mcrain.before_setup hook if you don't want your test or spec always works with mcrain.
+Set block to Mcrain.before_setup like this:
+
+```ruby
+unless ENV['WITH_MCRAIN'] =~ /true|yes|on|1/i
+  Mcrain.before_setup = ->(s){
+    # RSpec::Core::Pending#skip
+    # https://github.com/rspec/rspec-core/blob/5fc29a15b9af9dc1c9815e278caca869c4769767/lib/rspec/core/pending.rb#L118-L124
+    message = "skip examples which uses mcrain"
+    current_example = RSpec.current_example
+    RSpec::Core::Pending.mark_skipped!(current_example, message) if current_example
+    raise RSpec::Core::Pending::SkipDeclaredInExample.new(message)
+  }
+end
+```
+
+
+
 
 ## Development
 
