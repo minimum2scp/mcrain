@@ -78,6 +78,7 @@ module Mcrain
       end
     end
 
+    attr_accessor :before_setup
   end
 
   autoload :Base, 'mcrain/base'

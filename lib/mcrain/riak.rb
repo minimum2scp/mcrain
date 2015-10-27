@@ -139,6 +139,7 @@ module Mcrain
     end
 
     def setup
+      return false if Mcrain.before_setup && !Mcrain.before_setup.call(self)
       DockerMachine.setup_docker_options
       # setup_nodes(nodes[0, 1]) # primary node
       # setup_nodes(nodes[1..-1])

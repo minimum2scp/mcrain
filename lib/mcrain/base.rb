@@ -24,32 +24,38 @@ module Mcrain
       end
     end
 
-    def start
-      setup
+    def start(&block)
+      r = setup
+      return nil unless r
       if block_given?
-        begin
-          wait_port
-          wait
-          return yield(self)
-        rescue Exception => e
-          logs = container.logs(stdout: 1, stderr: 1)
-          logger.error("[#{e.class.name}] #{e.message}\nthe container logs...\n#{logs}")
-          raise e
-        ensure
-          teardown
-        end
+        start_callback(&block)
       else
         wait
-        return self
       end
+      return self
     end
 
     def setup
+      return false if Mcrain.before_setup && !Mcrain.before_setup.call(self)
       Timeout.timeout(30) do
         DockerMachine.setup_docker_options
         container.start!
       end
       return container
+    end
+
+    def start_callback
+      begin
+        wait_port
+        wait
+        return yield(self)
+      rescue Exception => e
+        logs = container.logs(stdout: 1, stderr: 1)
+        logger.error("[#{e.class.name}] #{e.message}\nthe container logs...\n#{logs}")
+        raise e
+      ensure
+        teardown
+      end
     end
 
     # ポートがLISTENされるまで待つ
