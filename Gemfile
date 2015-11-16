@@ -15,13 +15,14 @@ group :development do
   gem "riak-client"
 
   # for mysql
-  gem "mysql2"
+  gem "mysql2", platform: "ruby"
+  # gem "jdbc-mysql", platform: "jruby" # this is not supported yet.
 end
 
 group :development do
   gem "pry"
-  gem "pry-byebug"
-  gem "pry-stack_explorer"
+  gem "pry-byebug", platform: "ruby"
+  gem "pry-stack_explorer", platform: "ruby"
   gem "simplecov"
   gem "fuubar"
   gem "parallel_tests"
