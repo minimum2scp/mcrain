@@ -4,9 +4,8 @@ describe Mcrain::Riak do
 
   # docker inspect -f "{{.NetworkSettings.IPAddress}}\t{{.Config.Hostname}}\t#{{.Name}}\t({{.Config.Image}})" `docker ps -q`
   context ".NetworkSettings.IPAddress" do
-    after{ Mcrain[:riak].skip_reset_after_teardown = nil }
     it do
-      Mcrain[:riak].start do |s|
+      Mcrain::Riak.new.start do |s|
         s.nodes.each do |node|
           ip = node.ip
           expect(ip).to_not eq node.host

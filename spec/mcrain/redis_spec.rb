@@ -5,19 +5,15 @@ describe Mcrain::Redis do
 
   context ".start" do
     it "ping" do
-      Mcrain[:redis].start do |s|
+      Mcrain::Redis.new.start do |s|
         expect(s.client.ping).to eq "PONG"
       end
     end
 
-    after{ Mcrain[:redis].db_dir = nil }
-
     it "with db_dir" do
       Mcrain::DockerMachine.mktmpdir do |dir|
         Mcrain::DockerMachine.cp_r(File.expand_path("../redis_spec/db_dir", __FILE__), dir)
-        redis_server = Mcrain[:redis].tap do |s|
-          s.db_dir = File.join(dir, "db_dir")
-        end
+        redis_server = Mcrain::Redis.new(db_dir: File.join(dir, "db_dir"))
         redis_server.start do |s|
           expect(s.client.get("foo")).to eq '1000'
           expect(s.client.get("bar")).to eq '2000'
@@ -30,34 +26,32 @@ describe Mcrain::Redis do
   context "start twice" do
     it do
       first = nil
-      Mcrain[:redis].start do |s|
+      Mcrain::Redis.new.start do |s|
         first = s.client
         expect(s.client).to eq first
       end
-      Mcrain[:redis].start do |s|
+      Mcrain::Redis.new.start do |s|
         expect(s.client).to_not eq first
       end
     end
   end
 
   context "skip_reset_after_teardown" do
-    after{ Mcrain[:redis].skip_reset_after_teardown = nil }
-
     it false do
-      Mcrain[:redis].skip_reset_after_teardown = false
-      first_url = Mcrain[:redis].url
-      Mcrain[:redis].start{ }
-      expect(Mcrain[:redis].url).to_not eq first_url
+      s = Mcrain::Redis.new(skip_reset_after_teardown: false)
+      first_url = s.url
+      s.start{ }
+      expect(s.url).to_not eq first_url
     end
 
     it true do
-      Mcrain[:redis].skip_reset_after_teardown = true
+      s = Mcrain::Redis.new(skip_reset_after_teardown: true)
       begin
-        first_url = Mcrain[:redis].url
-        Mcrain[:redis].start{ }
-        expect(Mcrain[:redis].url).to eq first_url
+        first_url = s.url
+        s.start{ }
+        expect(s.url).to eq first_url
       ensure
-        Mcrain[:redis].reset # reset manually
+        s.reset # reset manually
       end
     end
   end
@@ -65,7 +59,7 @@ describe Mcrain::Redis do
   # docker inspect -f "{{.NetworkSettings.IPAddress}}\t{{.Config.Hostname}}\t#{{.Name}}\t({{.Config.Image}})" `docker ps -q`
   context ".NetworkSettings.IPAddress" do
     it do
-      Mcrain[:redis].start do |s|
+      Mcrain::Redis.new.start do |s|
         ip = s.ip
         expect(ip).to_not eq s.host
         expect(s.ssh_uri).to eq "ssh://root@#{ip}:22"

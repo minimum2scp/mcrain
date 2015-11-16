@@ -4,10 +4,13 @@ require 'spec_helper'
 describe Mcrain::Rabbitmq do
 
   context ".start" do
-    before(:all){ Mcrain[:rabbitmq].start }
-    after(:all){ Mcrain[:rabbitmq].teardown }
+    before(:all){
+      @rabbitmq = Mcrain::Rabbitmq.new
+      @rabbitmq.start
+    }
+    after(:all){ @rabbitmq.teardown }
 
-    let(:s){ Mcrain[:rabbitmq] }
+    let(:s){ @rabbitmq }
     it "overview" do
       nodes = s.client.list_nodes
       expect(nodes.length).to eq 1
@@ -23,11 +26,11 @@ describe Mcrain::Rabbitmq do
   context "start twice" do
     it do
       first = nil
-      Mcrain[:rabbitmq].start do |s|
+      Mcrain::Rabbitmq.new.start do |s|
         first = s.client
         expect(s.client).to eq first
       end
-      Mcrain[:rabbitmq].start do |s|
+      Mcrain::Rabbitmq.new.start do |s|
         expect(s.client).to_not eq first
       end
     end
@@ -35,11 +38,12 @@ describe Mcrain::Rabbitmq do
 
   context "don't reset for first start" do
     it do
-      first_url = Mcrain[:rabbitmq].url
-      Mcrain[:rabbitmq].start do |s|
-        expect(s.url).to eq first_url
+      s = Mcrain::Rabbitmq.new
+      first_url = s.url
+      s.start do |s1|
+        expect(s1.url).to eq first_url
       end
-      expect(Mcrain[:rabbitmq].url).to_not eq first_url
+      expect(s.url).to_not eq first_url
     end
   end
 

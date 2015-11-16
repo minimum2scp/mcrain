@@ -6,7 +6,7 @@ describe Mcrain::Riak do
     let(:data){ {"foo" => {"bar" => "baz"}} }
     it do
       first = nil
-      Mcrain[:riak].start do |s|
+      Mcrain::Riak.new.start do |s|
         c = s.client
         obj1 = c.bucket("bucket1").get_or_new("foo")
         obj1.data = data
@@ -19,7 +19,7 @@ describe Mcrain::Riak do
         first = s.client
         expect(s.client).to eq first
       end
-      Mcrain[:riak].start do |s|
+      Mcrain::Riak.new.start do |s|
         expect(s.client).to_not eq first
       end
     end
