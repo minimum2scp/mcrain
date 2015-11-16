@@ -12,17 +12,6 @@ require 'active_support/core_ext/numeric/time'
 
 module Mcrain
   class << self
-    def [](name)
-      lookup(name)
-    end
-
-    def lookup(name, options = {})
-      klass = class_for(name.to_sym)
-      r = instances[name] ||= klass.new
-      options.each{|k,v| r.send("#{k}=", v)}
-      r
-    end
-
     def class_names
       @class_names ||= {}
     end
@@ -40,10 +29,6 @@ module Mcrain
 
     def register(name, class_name)
       class_names[name] = class_name
-    end
-
-    def instances
-      @instances ||= {}
     end
 
     DEFAULT_IMAGES = {
