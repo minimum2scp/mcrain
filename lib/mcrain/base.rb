@@ -24,6 +24,12 @@ module Mcrain
       end
     end
 
+    def initialize(attrs = {})
+      attrs.each do |key, value|
+        send("#{key}=", value)
+      end
+    end
+
     def start(&block)
       r = setup
       return nil unless r
