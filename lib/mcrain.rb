@@ -75,9 +75,11 @@ module Mcrain
   autoload :Redis, 'mcrain/redis'
   autoload :Rabbitmq, 'mcrain/rabbitmq'
   autoload :Mysql, 'mcrain/mysql'
+  autoload :Hbase, 'mcrain/hbase'
 
   register :riak, "Mcrain::Riak"
   register :redis, "Mcrain::Redis"
   register :rabbitmq, "Mcrain::Rabbitmq"
   register :mysql, "Mcrain::Mysql"
+  register :hbase, "Mcrain::Hbase"
 end
