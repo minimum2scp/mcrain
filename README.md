@@ -59,34 +59,21 @@ Or install it yourself as:
 
     $ gem install mcrain
 
-### with redis
+### with middleware clients
 
-Add this line also to your application's Gemfile
-```ruby
-gem 'redis'
-```
+middleware | client gem
+-----------|-------------
+Redis      | `gem 'redis'`
+RabbitMQ   | `gem 'rabbitmq_http_api_client', '>= 1.6.0'`
+Riak       | `gem 'docker-api', '~> 1.21.1'; gem 'riak-client'`
 
-### with rabbitmq
-
-Add this line also to your application's Gemfile
-```ruby
-gem 'rabbitmq_http_api_client', '>= 1.6.0'
-```
-
-### with riak
-
-Add this line also to your application's Gemfile
-```ruby
-gem 'docker-api', '~> 1.21.1'
-gem 'riak-client'
-```
 
 ## Usage
 
 ### redis in code
 
 ```ruby
-Mcrain[:redis].start do |s|
+Mcrain::Redis.new.start do |s|
   c = s.client # Redis::Client object
   c.ping
 end
@@ -95,7 +82,7 @@ end
 ### rabbitmq in code
 
 ```ruby
-Mcrain[:rabbitmq].start do |s|
+Mcrain::Rabbitmq.new.start do |s|
   c = s.client # RabbitMQ::HTTP::Client object
   c.list_nodes
 end
@@ -107,8 +94,7 @@ Mcrain::Riak uses [docker-riak](https://github.com/hectcastro/docker-riak).
 So set the path to `Mcrain.docker_riak_path` .
 
 ```ruby
-Mcrain.docker_riak_path = "path/to/docker-riak"
-Mcrain[:riak].start do |s|
+Mcrain::Riak.new.start do |s|
   c = s.client # Riak::Client object
   obj = c.bucket("bucket1").get_or_new("foo")
   obj.data = data

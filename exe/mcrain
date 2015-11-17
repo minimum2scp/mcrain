@@ -38,10 +38,31 @@ begin
     options = {cluster_size: cluster_size, automatic_clustering: cluster_size > 1}
   end
 
+  cid_filepath = ".mcrain.#{service}.cid"
   case action
-  when "start", "stop" then
-    server = Mcrain.lookup(service.to_sym, options)
-    server.send(action)
+  when "start" then
+    if File.exist?(cid_filepath)
+      $stderr.puts("\e[31m#{service} is already run on docker. Check #{cid_filepath}\e[0m")
+      exit(1)
+    else
+      server = Mcrain.class_for(service.to_sym).new(options)
+      container = server.start
+      open(cid_filepath, "w"){|f| f.puts(container.id)}
+      puts "To connect:\nrequire '#{server.client_require}'\nclient = #{server.client_script}"
+    end
+  when "stop" then
+    if File.readable?(cid_filepath)
+      cid = File.read(cid_filepath).strip
+      if system("docker kill #{cid} && docker rm #{cid} >/dev/null")
+        File.delete(cid_filepath)
+      else
+        $stderr.puts("\e[31mFailed to stop or rm container #{cid}. `rm #{cid_filepath}` unless the container exists.\e[0m")
+        exit(1)
+      end
+    else
+      $stderr.puts("\e[31m#{service} container is not found.\e[0m")
+      exit(1)
+    end
   when "pull" then
     services = (service == "all") ? Mcrain.images.keys : [service]
     services.map(&:to_sym).map{|s| Mcrain.class_for(s)}.each(&:pull_image)
@@ -49,10 +70,6 @@ begin
     raise "Unknown action: #{action.inspect}"
   end
 
-  case action
-  when "start" then
-    puts "To connect:\nrequire '#{server.client_require}'\nclient = #{server.client_script}"
-  end
 rescue => e
   $stderr.puts "\e[31m[#{e.class}] #{e.message}\e[0m"
   $stderr.puts e.backtrace.join("\n  ") if verbose
