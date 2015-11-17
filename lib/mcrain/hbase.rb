@@ -1,7 +1,6 @@
 require 'mcrain'
 
-# don't require 'redis' here in order to use mcrain without 'redis' gem
-# require 'redis'
+require 'fileutils'
 
 module Mcrain
   class Hbase < Base
@@ -9,10 +8,15 @@ module Mcrain
 
     self.port = 60000 # hbase.master.port # 60000
 
-    DEFAULT_CLIENT_DEP_URL = "https://github.com/junegunn/hbase-client-dep/releases/download/1.0.0/hbase-client-dep-1.0.jar"
-    attr_writer :client_dep_url
-    def client_dep_url
-      @client_dep_url ||= DEFAULT_CLIENT_DEP_URL
+    DEFAULT_CLIENT_DEP_JAR_URL = "https://github.com/junegunn/hbase-client-dep/releases/download/1.0.0/hbase-client-dep-1.0.jar"
+    attr_writer :client_dep_jar_url
+    def client_dep_jar_url
+      @client_dep_jar_url ||= DEFAULT_CLIENT_DEP_JAR_URL
+    end
+
+    attr_writer :client_dep_jar_path
+    def client_dep_jar_path
+      @client_dep_jar_path = File.join(self.class.work_dir, File.basename(client_dep_jar_url))
     end
 
     def client_require
@@ -45,22 +49,29 @@ module Mcrain
       return [options]
     end
 
+    def download_jar
+      FileUtils.mkdir_p(File.dirname(client_dep_jar_path))
+      LoggerPipe.run(Mcrain.logger, "curl -L -o #{client_dep_jar_path} #{client_dep_jar_url}")
+    end
+
     def build_client
-      $CLASSPATH << "hbase-client-dep-1.0.jar" # where is this jar file?
+      download_jar unless File.exist?(client_dep_jar_path)
+      $CLASSPATH << client_dep_jar_path
       $LOAD_PATH << 'hbase-jruby/lib'
       super
     end
 
     def client_script
       [
-        '$CLASSPATH << "hbase-client-dep-1.0.jar"',
+        "$CLASSPATH << #{client_dep_jar_path.inspect}",
         '$LOAD_PATH << "hbase-jruby/lib"',
         super,
       ].join("\n")
     end
 
     def wait_for_ready
-      client.tables
+      c = client
+      c.tables
     end
 
     def build_docker_options

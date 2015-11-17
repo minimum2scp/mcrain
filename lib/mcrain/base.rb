@@ -101,5 +101,11 @@ module Mcrain
       container.remove unless ENV['MCRAIN_KEEP_CONTAINERS'] =~ /true|yes|on|1/i
     end
 
+    class << self
+      def work_dir
+        File.join(Mcrain.home_dir, server_name.to_s)
+      end
+    end
+
   end
 end
