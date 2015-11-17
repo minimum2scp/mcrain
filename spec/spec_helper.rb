@@ -35,5 +35,7 @@ end
 RSpec.configure do |config|
   if defined? JRUBY_VERSION
     config.filter_run_excluding skip_on_jruby: true
+  else
+    config.filter_run_excluding skip_on_ruby: true
   end
 end
