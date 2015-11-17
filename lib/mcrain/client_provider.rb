@@ -29,7 +29,7 @@ module Mcrain
     end
 
     def client_script
-      "require '#{server.client_require}'\nclient = #{server.client_script}"
+      "require '#{client_require}'\nclient = #{client_instantiation_script}"
     end
 
   end
