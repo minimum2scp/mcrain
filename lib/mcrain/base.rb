@@ -42,11 +42,13 @@ module Mcrain
     end
 
     def setup
+      logger.info("#{self.class.name}#setup STARTED")
       return false if Mcrain.before_setup && !Mcrain.before_setup.call(self)
       Timeout.timeout(30) do
         DockerMachine.setup_docker_options
         container.start!
       end
+      logger.info("#{self.class.name}#setup COMPLETED")
       return container
     end
 
@@ -72,6 +74,7 @@ module Mcrain
     # ポートはdockerがまずLISTENしておいて、その後コンテナ内のミドルウェアが起動するので、
     # 実際にそのAPIを叩いてみて例外が起きないことを確認します。
     def wait
+      logger.info("#{self.class.name}#wait STARTED")
       Timeout.timeout(30) do
         begin
           wait_for_ready
@@ -81,6 +84,7 @@ module Mcrain
           retry
         end
       end
+      logger.info("#{self.class.name}#wait COMPLETED")
     end
 
     def wait_for_ready

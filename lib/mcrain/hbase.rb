@@ -50,15 +50,20 @@ module Mcrain
     end
 
     def download_jar
+      logger.debug("#{self.class.name}#download_jar STARTED")
       FileUtils.mkdir_p(File.dirname(client_dep_jar_path))
       LoggerPipe.run(Mcrain.logger, "curl -L -o #{client_dep_jar_path} #{client_dep_jar_url}")
+      logger.debug("#{self.class.name}#download_jar COMPLETED")
     end
 
     def build_client
+      logger.debug("#{self.class.name}#build_client STARTED")
       download_jar unless File.exist?(client_dep_jar_path)
       $CLASSPATH << client_dep_jar_path
       $LOAD_PATH << 'hbase-jruby/lib'
-      super
+      r = super
+      logger.debug("#{self.class.name}#build_client COMPLETED")
+      return r
     end
 
     def client_script
