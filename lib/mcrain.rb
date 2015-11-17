@@ -36,6 +36,7 @@ module Mcrain
       redis: "redis:2.8.19",
       rabbitmq: "rabbitmq:3.4.4-management",
       riak: "hectcastro/riak",
+      hbase: "nerdammer/hbase:latest",
     }.freeze
 
     def images
@@ -64,6 +65,11 @@ module Mcrain
     end
 
     attr_accessor :before_setup
+
+    attr_writer :home_dir
+    def home_dir
+      @home_dir ||= (ENV['MCRAIN_HOME'] || File.join(ENV['HOME'], '.mcrain'))
+    end
   end
 
   autoload :Base, 'mcrain/base'
