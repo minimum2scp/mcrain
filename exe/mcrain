@@ -48,7 +48,7 @@ begin
       server = Mcrain.class_for(service.to_sym).new(options)
       container = server.start
       open(cid_filepath, "w"){|f| f.puts(container.id)}
-      puts "To connect:\nrequire '#{server.client_require}'\nclient = #{server.client_script}"
+      puts "To connect:\n#{server.client_script}"
     end
   when "stop" then
     if File.readable?(cid_filepath)

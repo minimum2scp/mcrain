@@ -23,9 +23,13 @@ module Mcrain
       raise NotImplementedError
     end
 
-    def client_script
+    def client_instantiation_script
       client
       "#{client_class.name}.new(*#{client_init_args.inspect})"
+    end
+
+    def client_script
+      "require '#{server.client_require}'\nclient = #{server.client_script}"
     end
 
   end
