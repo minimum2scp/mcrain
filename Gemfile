@@ -17,6 +17,9 @@ group :development do
   # for mysql
   gem "mysql2", platform: "ruby"
   # gem "jdbc-mysql", platform: "jruby" # this is not supported yet.
+
+  # for HBase
+  gem "hbase-jruby", platform: "jruby"
 end
 
 group :development do
