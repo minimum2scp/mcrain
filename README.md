@@ -64,10 +64,10 @@ Or install it yourself as:
 middleware | client gem (CRuby)  | client gem (JRuby)
 -----------|---------------------|------------------
 MySQL      | `gem 'mysql2'`      | N/A
-Redis      | `gem 'redis'`       | the same as CRuby
-RabbitMQ   | `gem 'rabbitmq_http_api_client', '>= 1.6.0'`       | the same as CRuby
-Riak       | `gem 'docker-api', '~> 1.21.1'; gem 'riak-client'` | the same as CRuby
-HBase      | N/A                 | gem 'hbase-jruby'
+Redis      | `gem 'redis'`       | (the same as CRuby)
+RabbitMQ   | `gem 'rabbitmq_http_api_client', '>= 1.6.0'`       | (the same as CRuby)
+Riak       | `gem 'docker-api', '~> 1.21.1'; gem 'riak-client'` | (the same as CRuby)
+HBase      | N/A                 | `gem 'hbase-jruby'`
 
 
 ## Usage
@@ -107,19 +107,12 @@ end
 
 Mcrain::Hbase uses [nerdammer/hbase](https://hub.docker.com/r/nerdammer/hbase).
 
-add hostname to /etc/hosts befoe use it
+Add a line like this to /etc/hosts
 
-With docker toolbox
-
-```
-192.168.99.100 docker-host1
-```
-
-Without docker toolbox
-
-```
-127.0.0.1 docker-host1
-```
+|      |       |
+|------|-------|
+| With docker toolbox    | `192.168.99.100 docker-host1` |
+| Without docker toolbox | `127.0.0.1 docker-host1` |
 
 
 ```ruby
@@ -191,17 +184,12 @@ OK
 
 add hostname to /etc/hosts befoe use it
 
-With docker toolbox
+Add a line like this to /etc/hosts
 
-```
-192.168.99.100 docker-host1
-```
-
-Without docker toolbox
-
-```
-127.0.0.1 docker-host1
-```
+|      |       |
+|------|-------|
+| With docker toolbox    | `192.168.99.100 docker-host1` |
+| Without docker toolbox | `127.0.0.1 docker-host1` |
 
 
 ```
