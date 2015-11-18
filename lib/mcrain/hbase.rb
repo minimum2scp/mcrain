@@ -96,7 +96,7 @@ module Mcrain
 
     def build_docker_options
       r = super
-      r["Hostname"] = "hbase"
+      r["Hostname"] = Mcrain::DockerMachine.docker_hostname!
       PORT_DEFS.each do |key, d|
         r['HostConfig']['PortBindings']["#{d[:default]}/tcp"] = [{ 'HostPort' => send(d[:method]).to_s }]
       end
