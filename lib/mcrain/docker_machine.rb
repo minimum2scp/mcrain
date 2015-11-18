@@ -12,11 +12,29 @@ require 'docker'
 module Mcrain
   module DockerMachine
 
+    DEFAULT_HOSTNAME = 'docker-host1'.freeze
+
     class << self
       attr_accessor :certs_dir
 
       def docker_machine_name
         ENV['DOCKER_MACHINE_NAME']
+      end
+
+      def docker_hostname
+        ENV['MCRAIN_DOCKER_HOSTNAME'] || DEFAULT_HOSTNAME
+      end
+
+      def docker_hostname!
+        name = docker_hostname
+        return name if valid_docker_hostname?
+        raise "hostname: #{name.inspect} is not valid. Plase set it with docker IP address to /etc/hosts or export MCRAIN_DOCKER_HOSTNAME=(valid-hostname) ."
+      end
+
+      def valid_docker_hostname?
+        return !!IPSocket.getaddress(docker_hostname)
+      rescue SocketError
+        return false
       end
     end
     self.certs_dir = File.expand_path('.docker/machine/certs', ENV["HOME"])

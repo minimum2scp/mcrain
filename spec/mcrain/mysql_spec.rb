@@ -3,7 +3,7 @@ require 'spec_helper'
 
 require 'tmpdir'
 
-describe Mcrain::Mysql do
+describe Mcrain::Mysql, skip_on_jruby: true do
 
   context ".start" do
     it "ping" do

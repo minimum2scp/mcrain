@@ -4,7 +4,9 @@ describe Mcrain::Base do
   before{ @before_setup_backup = Mcrain.before_setup }
   after{ Mcrain.before_setup = @before_setup_backup }
 
-  [Mcrain::Mysql, Mcrain::Rabbitmq, Mcrain::Redis, Mcrain::Riak].each do |server_class|
+  classes = [Mcrain::Rabbitmq, Mcrain::Redis, Mcrain::Riak]
+  classes << Mcrain::Mysql unless defined? JRUBY_VERSION
+  classes.each do |server_class|
     context server_class do
       it "starts with before_setup which returns true" do
         called = []
