@@ -182,9 +182,7 @@ OK
 
 ### hbase in terminal
 
-add hostname to `/etc/hosts` befoe use it
-
-Add a line like this to /etc/hosts
+Add a line like this to `/etc/hosts`
 
 |      |       |
 |------|-------|
