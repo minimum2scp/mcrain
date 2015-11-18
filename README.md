@@ -61,12 +61,13 @@ Or install it yourself as:
 
 ### with middleware clients
 
-middleware | client gem
------------|-------------
-MySQL      | `gem 'mysql2'`
-Redis      | `gem 'redis'`
-RabbitMQ   | `gem 'rabbitmq_http_api_client', '>= 1.6.0'`
-Riak       | `gem 'docker-api', '~> 1.21.1'; gem 'riak-client'`
+middleware | client gem (CRuby)  | client gem (JRuby)
+-----------|---------------------|------------------
+MySQL      | `gem 'mysql2'`      | N/A
+Redis      | `gem 'redis'`       | the same as CRuby
+RabbitMQ   | `gem 'rabbitmq_http_api_client', '>= 1.6.0'`       | the same as CRuby
+Riak       | `gem 'docker-api', '~> 1.21.1'; gem 'riak-client'` | the same as CRuby
+HBase      | N/A                 | gem 'hbase-jruby'
 
 
 ## Usage
@@ -91,8 +92,7 @@ end
 
 ### riak in code
 
-Mcrain::Riak uses [docker-riak](https://github.com/hectcastro/docker-riak).
-So set the path to `Mcrain.docker_riak_path` .
+Mcrain::Riak uses [hectcastro/docker-riak](https://github.com/hectcastro/docker-riak).
 
 ```ruby
 Mcrain::Riak.new.start do |s|
@@ -100,6 +100,35 @@ Mcrain::Riak.new.start do |s|
   obj = c.bucket("bucket1").get_or_new("foo")
   obj.data = data
   obj.store
+end
+```
+
+### hbase in code
+
+Mcrain::Hbase uses [nerdammer/hbase](https://hub.docker.com/r/nerdammer/hbase).
+
+add hostname to /etc/hosts befoe use it
+
+With docker toolbox
+
+```
+192.168.99.100 docker-host1
+```
+
+Without docker toolbox
+
+```
+127.0.0.1 docker-host1
+```
+
+
+```ruby
+Mcrain::Hbase.new.start do |s|
+  c = s.client # Riak::Client object
+  c.list
+  c[:my_table].create! :f
+  c[:my_table].put 100, 'f:a' => 1, 'f:b' => 'two', 'f:c' => 3.14
+  c[:my_table].get(100).double('f:c') #=> 3.14
 end
 ```
 
@@ -133,7 +162,6 @@ OK
 ### riak in terminal
 
 ```
-$ export DOCKER_RIAK_PATH=/path/to/docker-riak
 $ mcrain start riak
 To connect:
 require 'riak'
@@ -156,6 +184,45 @@ OK
 $ mcrain stop riak 5
 OK
 ```
+
+
+
+### hbase in terminal
+
+add hostname to /etc/hosts befoe use it
+
+With docker toolbox
+
+```
+192.168.99.100 docker-host1
+```
+
+Without docker toolbox
+
+```
+127.0.0.1 docker-host1
+```
+
+
+```
+$ mcrain start hbase
+(snip)
+To connect:
+$CLASSPATH << "/Users/akima/.mcrain/hbase/hbase-client-dep-1.0.jar"
+$LOAD_PATH << "hbase-jruby/lib"
+require 'hbase-jruby'
+client = HBase.new(*[{"hbase.zookeeper.quorum"=>"192.168.99.100", "hbase.zookeeper.property.clientPort"=>54489, "hbase.master.port"=>60000, "hbase.master.info.port"=>54490, "hbase.regionserver.port"=>60020, "hbase.regionserver.info.port"=>54491}])
+OK
+
+$ mcrain stop riak
+(snip)
+86a8dd6c13cd2c346fe9111e16f97265cb4fdb67cc67873c495622a28f0c1062
+OK
+```
+
+use irb or something in JRuby.
+
+
 
 ## Mcrain.before_setup
 
