@@ -24,7 +24,7 @@ MESSAGE
   exit(1)
 end
 
-unless args.include?("-v") || args.include?("--verbose")
+unless verbose
   require 'logger'
   Mcrain.logger = Logger.new("/dev/null")
 end
@@ -46,8 +46,8 @@ begin
       exit(1)
     else
       server = Mcrain.class_for(service.to_sym).new(options)
-      container = server.start
-      open(cid_filepath, "w"){|f| f.puts(container.id)}
+      server.start
+      open(cid_filepath, "w"){|f| f.puts(server.container.id)}
       puts "To connect:\n#{server.client_script}"
     end
   when "stop" then
