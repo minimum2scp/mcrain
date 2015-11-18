@@ -63,6 +63,7 @@ Or install it yourself as:
 
 middleware | client gem
 -----------|-------------
+MySQL      | `gem 'mysql2'`
 Redis      | `gem 'redis'`
 RabbitMQ   | `gem 'rabbitmq_http_api_client', '>= 1.6.0'`
 Riak       | `gem 'docker-api', '~> 1.21.1'; gem 'riak-client'`
