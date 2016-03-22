@@ -57,7 +57,7 @@ module Mcrain
           s = TCPSocket.open(host, port)
           s.close
           return true
-        rescue Errno::ECONNREFUSED
+        rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
           sleep(interval)
           retry
         end
