@@ -102,7 +102,7 @@ module Mcrain
       rescue => e
         container.kill!
       end
-      container.remove unless ENV['MCRAIN_KEEP_CONTAINERS'] =~ /true|yes|on|1/i
+      container.remove(v: "1") unless ENV['MCRAIN_KEEP_CONTAINERS'] =~ /true|yes|on|1/i
     end
 
     class << self
