@@ -10,17 +10,21 @@ module Mcrain
     self.server_name = :riak
 
     attr_accessor :automatic_clustering
-    attr_writer :cluster_size, :backend
+    attr_writer :cluster_size, :backend, :strong_consistency
     def cluster_size
       @cluster_size ||= 1
     end
     def backend
       @backend ||= "bitcask" # "leveldb"
     end
+    def strong_consistency
+      @strong_consistency ||= "off"
+    end
 
     # docker run -e "DOCKER_RIAK_CLUSTER_SIZE=${DOCKER_RIAK_CLUSTER_SIZE}" \
     #            -e "DOCKER_RIAK_AUTOMATIC_CLUSTERING=${DOCKER_RIAK_AUTOMATIC_CLUSTERING}" \
     #            -e "DOCKER_RIAK_BACKEND=${DOCKER_RIAK_BACKEND}" \
+    #            -e "DOCKER_RIAK_STRONG_CONSISTENCY=${DOCKER_RIAK_STRONG_CONSISTENCY} \
     #            -p $publish_http_port \
     #            -p $publish_pb_port \
     #            --link "riak01:seed" \
@@ -51,6 +55,7 @@ module Mcrain
         envs << "DOCKER_RIAK_CLUSTER_SIZE=#{owner.cluster_size}"
         envs << "DOCKER_RIAK_AUTOMATIC_CLUSTERING=#{owner.automatic_clustering ? 1 : 0}"
         envs << "DOCKER_RIAK_BACKEND=#{owner.backend}"
+        envs << "DOCKER_RIAK_STRONG_CONSISTENCY=#{owner.strong_consistency}"
         r['Env'] = envs unless envs.empty?
         if primary_node
           r['HostConfig']['Links'] = ["#{primary_node.name}:seed"]
