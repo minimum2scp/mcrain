@@ -34,59 +34,10 @@ jobs:
             echo 'DOCKER_OPTS="$DOCKER_OPTS -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock"' | sudo tee -a /etc/default/docker
             sudo service docker restart
 
-      - restore_cache:
-          keys:
-            - docker-cache-{{ .Branch }}
-            - docker-cache
-
-      - run:
-          name: Create docker cache directory
-          command: mkdir -p ~/docker
-
-      - run:
-          name: Pull mysql:5.5 image
-          command: |
-            if [ -e ~/docker/mysql.tar ]; then
-              docker load -i ~/docker/mysql.tar
-            else
-              docker pull mysql:5.5
-              docker save mysql:5.5 > ~/docker/mysql.tar
-            fi
-
-      - run:
-          name: Pull redis:2.8.19 image
-          command: |
-            if [ -e ~/docker/redis.tar ]; then
-              docker load -i ~/docker/redis.tar
-            else
-              docker pull redis:2.8.19
-              docker save redis:2.8.19 > ~/docker/redis.tar
-            fi
-
-      - run:
-          name: Pull rabbitmq:3.4.4-management image
-          command: |
-            if [ -e ~/docker/rabbitmq.tar ]; then
-              docker load -i ~/docker/rabbitmq.tar
-            else
-              docker pull rabbitmq:3.4.4-management
-              docker save rabbitmq:3.4.4-management > ~/docker/rabbitmq.tar
-            fi
-
-      - run:
-          name: Pull hectcastro/riak:latest
-          command: |
-            if [ -e ~/docker/riak.tar ]; then
-              docker load -i ~/docker/riak.tar
-            else
-              docker pull hectcastro/riak:latest
-              docker save hectcastro/riak:latest > ~/docker/riak.tar
-            fi
-
-      - save_cache:
-          key: docker-cache-{{ .Branch }}-{{ epoch }}
-          paths:
-            - ~/docker
+      - run: docker pull mysql:5.5
+      - run: docker pull redis:2.8.19
+      - run: docker pull rabbitmq:3.4.4-management
+      - run: docker pull hectcastro/riak:latest
 
       - run: bundle install --jobs=4 --path=vendor/bundle
 
