@@ -17,11 +17,24 @@ jobs:
             docker version
             docker info
 
+      - run: docker build -t rspec-runner -f .circleci/rspec-runner/Dockerfile .
+
       - run: docker pull mysql:5.5
       - run: docker pull redis:2.8.19
       - run: docker pull rabbitmq:3.4.4-management
       - run: docker pull hectcastro/riak:latest
 
-      - run: bundle install --jobs=4 --path=vendor/bundle
-      - run: bundle exec rake spec
+      - run:
+          name: Setup rspec-runner environment variables and volumes
+          command: |
+            printenv | sort | grep -Ev '^(DOCKER_CERT_PATH|CIRCLE_BUILD_TOKEN)=' | grep -E '^(CI=|CIRCLECI=|CIRCLE_|DOCKER_)' > .circleci/env
+            echo "DOCKER_CERT_PATH=/data/$(basename ${DOCKER_CERT_PATH})" >> .circleci/env
+            docker volume create data
+            docker create --name cfg -v data:/data rspec-runner
+            docker cp ${DOCKER_CERT_PATH} cfg:/data
+            docker rm cfg
+
+      - run:
+          name: Run rake spec in remote docker
+          command: docker run --rm --env-file .circleci/env -v data:/data rspec-runner bundle exec rake spec
 
