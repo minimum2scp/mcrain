@@ -18,20 +18,6 @@ Mcrain.logger.level = Logger::DEBUG
 
 Dir[File.expand_path("../support/**/*.rb", __FILE__)].each { |f| require f }
 
-## workaround for Circle CI
-## docker rm (removing btrfs snapshot) fails on Circle CI
-if ENV['CIRCLECI']
-  unless defined?(Docker::Container)
-    require 'docker'
-  end
-  class Docker::Container
-    def remove(options={})
-      # do not delete container
-    end
-    alias_method :delete, :remove
-  end
-end
-
 RSpec.configure do |config|
   if defined? JRUBY_VERSION
     config.filter_run_excluding skip_on_jruby: true
