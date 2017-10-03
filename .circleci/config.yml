@@ -1,0 +1,50 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/mcrain
+
+    ## see https://circleci.com/docs/2.0/executor-types/#machine-executor-overview
+    machine: true
+
+    steps:
+      - checkout
+
+      - run:
+          name: Check docker version
+          command: |
+            set -x
+            docker version
+            docker info
+
+      - run:
+          name: Check ruby version
+          command: |
+            set -x
+            rvm version
+            rvm list
+            ruby -v
+            gem --version
+            gem env
+            bundle --version
+
+      - run:
+          name: Open docker TCP port
+          command: |
+            set -x
+            echo 'DOCKER_OPTS="$DOCKER_OPTS -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock"' | sudo tee -a /etc/default/docker
+            sudo service docker restart
+
+      - run: docker pull mysql:5.5
+      - run: docker pull redis:2.8.19
+      - run: docker pull rabbitmq:3.4.4-management
+      - run: docker pull hectcastro/riak:latest
+
+      - run: bundle install --jobs=4 --path=vendor/bundle
+
+      - run:
+          name: test
+          command: bundle exec rake spec
+          environment:
+            DOCKER_HOST: tcp://127.0.0.1:2375
+
+
