@@ -1,0 +1,27 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/mcrain
+
+    docker:
+      - image: circleci/ruby:2.3.5
+
+    steps:
+      - checkout
+      - setup_remote_docker
+
+      - run:
+          name: Check docker version
+          command: |
+            set -x
+            docker version
+            docker info
+
+      - run: docker pull mysql:5.5
+      - run: docker pull redis:2.8.19
+      - run: docker pull rabbitmq:3.4.4-management
+      - run: docker pull hectcastro/riak:latest
+
+      - run: bundle install --jobs=4 --path=vendor/bundle
+      - run: bundle exec rake spec
+
