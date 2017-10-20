@@ -72,6 +72,38 @@ HBase      | N/A                 | `gem 'hbase-jruby'`
 
 ## Usage
 
+### configure images
+
+```ruby
+Mcrain.configure do |config|
+  config.images[:mysql] = "mysql:5.6"
+  config.images[:redis] = "redis:3.2-alpine"
+  # config.images[:rabbitmq] = ...
+  # config.images[:riak] = ...
+  # config.images[:hbase] = ...
+end
+```
+
+Or put `.mcrain.yml` file with following content
+
+```yaml
+---
+images:
+  mysql: "mysql:5.6"
+  redis: "redis:3.2-alpine"
+  # rabbitmq: ...
+  # riak: ...
+  # hbase: ...
+```
+
+and load it by `Mcrain.load_config`:
+
+```ruby
+Mcrain.load_config "/path/to/.mcrain.yml"
+```
+
+`mcrain` command accepts `-c` (`--config`) option to configure images by yaml file, and its default is `.mcrain.yml`.
+
 ### redis in code
 
 ```ruby

@@ -2,12 +2,16 @@
 # coding: utf-8
 
 require "mcrain"
+require "optparse"
 
-action, service, *args  = *ARGV
-verbose = ARGV.include?('-V') || ARGV.include?('--verbose')
-if action.nil? || service.nil?
-  $stderr.puts(<<MESSAGE)
-#{$PROGRAM_NAME} <action> <service> [n] [-v or --verbose]
+opts = {
+  verbose: false,
+  config_file: ".mcrain.yml"
+}
+
+ARGV.options do |q|
+  q.banner = <<MESSAGE
+#{q.program_name} <action> <service> [n] [options]
   actions: start, stop or pull
 
   start:
@@ -19,14 +23,30 @@ if action.nil? || service.nil?
 
   pull:
     service: redis, rabbitmq, mysql, riak or all
-MESSAGE
 
+  [options]
+MESSAGE
+  q.on("-c", "--config=file", "Path to mcrain config file, default: .mcrain.yml"){ |v| opts[:config_file] = v }
+  q.on("-V", "--verbose"){ |v| opts[:verbose] = v }
+  q.parse!
+end
+
+action, service, *args  = *ARGV
+if action.nil? || service.nil?
+  $stderr.puts ARGV.options
   exit(1)
 end
 
-unless verbose
+unless opts[:verbose]
   require 'logger'
   Mcrain.logger = Logger.new("/dev/null")
+end
+
+if opts[:config_file] && File.exist?(opts[:config_file])
+  Mcrain.logger.debug "Loading config file from #{opts[:config_file]}"
+  Mcrain.load_config opts[:config_file]
+else
+  Mcrain.logger.debug "Skipped to load config file"
 end
 
 begin
@@ -64,7 +84,7 @@ begin
       exit(1)
     end
   when "pull" then
-    services = (service == "all") ? Mcrain.images.keys : [service]
+    services = (service == "all") ? Mcrain.configuration.images.keys : [service]
     services.map(&:to_sym).map{|s| Mcrain.class_for(s)}.each(&:pull_image)
   else
     raise "Unknown action: #{action.inspect}"

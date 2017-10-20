@@ -33,7 +33,9 @@ module Mcrain
     class Node
       include ContainerController
 
-      self.container_image = "hectcastro/riak"
+      def self.container_image
+        Mcrain.configuration.images[:riak]
+      end
 
       self.port = 8087 # protocol buffer
       # self.http_port = 8098 # HTTP

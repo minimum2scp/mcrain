@@ -13,9 +13,9 @@ module Mcrain
       end
 
       def container_image
-        @container_image ||= Mcrain.images[server_name]
+        Mcrain.configuration.images[server_name]
       end
-      attr_writer :container_image
+
       attr_accessor :port
 
       def pull_image
