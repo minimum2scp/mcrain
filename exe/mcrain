@@ -5,7 +5,8 @@ require "mcrain"
 require "optparse"
 
 opts = {
-  verbose: false
+  verbose: false,
+  config_file: ".mcrain.yml"
 }
 
 ARGV.options do |q|
@@ -25,6 +26,7 @@ ARGV.options do |q|
 
   [options]
 MESSAGE
+  q.on("-c", "--config=file", "Path to mcrain config file, default: .mcrain.yml"){ |v| opts[:config_file] = v }
   q.on("-V", "--verbose"){ |v| opts[:verbose] = v }
   q.parse!
 end
@@ -38,6 +40,13 @@ end
 unless opts[:verbose]
   require 'logger'
   Mcrain.logger = Logger.new("/dev/null")
+end
+
+if opts[:config_file] && File.exist?(opts[:config_file])
+  Mcrain.logger.debug "Loading config file from #{opts[:config_file]}"
+  Mcrain.load_config opts[:config_file]
+else
+  Mcrain.logger.debug "Skipped to load config file"
 end
 
 begin
