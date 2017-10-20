@@ -84,6 +84,24 @@ Mcrain.configure do |config|
 end
 ```
 
+Or put `.mcrain.yml` file with following content
+
+```yaml
+---
+images:
+  mysql: "mysql:5.6"
+  redis: "redis:3.2-alpine"
+  # rabbitmq: ...
+  # riak: ...
+  # hbase: ...
+```
+
+and load it by `Mcrain.load_config`:
+
+```ruby
+Mcrain.load_config "/path/to/.mcrain.yml"
+```
+
 ### redis in code
 
 ```ruby
