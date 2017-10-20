@@ -1,4 +1,5 @@
 require "mcrain"
+require "yaml"
 
 module Mcrain
   class Configuration
@@ -14,6 +15,19 @@ module Mcrain
 
     def initialize
       @images = DEFAULT_IMAGES.dup
+    end
+
+    class << self
+      def load_config(file)
+        loaded_config = YAML.load(File.read(file))
+        c = self.new
+        if loaded_config["images"]
+          loaded_config["images"].each do |k,v|
+            c.images[k.to_sym] = v
+          end
+        end
+        c
+      end
     end
   end
 end

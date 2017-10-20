@@ -31,6 +31,10 @@ module Mcrain
       class_names[name] = class_name
     end
 
+    def load_config(file)
+      @configuration = Mcrain::Configuration.load_config(file)
+    end
+
     attr_writer :configuration
     def configuration
       @configuration ||= Mcrain::Configuration.new
