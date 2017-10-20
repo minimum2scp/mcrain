@@ -102,6 +102,8 @@ and load it by `Mcrain.load_config`:
 Mcrain.load_config "/path/to/.mcrain.yml"
 ```
 
+`mcrain` command accepts `-c` (`--config`) option to configure images by yaml file, and its default is `.mcrain.yml`.
+
 ### redis in code
 
 ```ruby
