@@ -72,6 +72,18 @@ HBase      | N/A                 | `gem 'hbase-jruby'`
 
 ## Usage
 
+### configure images
+
+```ruby
+Mcrain.configure do |config|
+  config.images[:mysql] = "mysql:5.6"
+  config.images[:redis] = "redis:3.2-alpine"
+  # config.images[:rabbitmq] = ...
+  # config.images[:riak] = ...
+  # config.images[:hbase] = ...
+end
+```
+
 ### redis in code
 
 ```ruby
