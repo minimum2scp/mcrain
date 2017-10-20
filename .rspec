@@ -1,3 +1,3 @@
 --color
---format Fuubar
+--format documentation
 --format ParallelTests::RSpec::RuntimeLogger --out log/parallel_runtime_rspec.log
