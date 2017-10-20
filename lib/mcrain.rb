@@ -31,18 +31,19 @@ module Mcrain
       class_names[name] = class_name
     end
 
-    DEFAULT_IMAGES = {
-      mysql: "mysql:5.5",
-      redis: "redis:2.8.19",
-      rabbitmq: "rabbitmq:3.4.4-management",
-      riak: "hectcastro/riak",
-      hbase: "nerdammer/hbase:latest",
-    }.freeze
+    attr_writer :configuration
+    def configuration
+      @configuration ||= Mcrain::Configuration.new
+    end
+
+    def configure
+      yield configuration
+      configuration
+    end
 
     def images
-      @images ||= DEFAULT_IMAGES.dup
+      configuration.images
     end
-    attr_writer :images
 
     attr_writer :logger
     def logger
@@ -73,6 +74,7 @@ module Mcrain
   end
 
   autoload :Base, 'mcrain/base'
+  autoload :Configuration, 'mcrain/configuration'
   autoload :DockerMachine, 'mcrain/docker_machine'
   autoload :ContainerController, 'mcrain/container_controller'
   autoload :ClientProvider, 'mcrain/client_provider'
