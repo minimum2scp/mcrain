@@ -41,10 +41,6 @@ module Mcrain
       configuration
     end
 
-    def images
-      configuration.images
-    end
-
     attr_writer :logger
     def logger
       @logger ||= Logger.new($stderr)

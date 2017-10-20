@@ -64,7 +64,7 @@ begin
       exit(1)
     end
   when "pull" then
-    services = (service == "all") ? Mcrain.images.keys : [service]
+    services = (service == "all") ? Mcrain.configuration.images.keys : [service]
     services.map(&:to_sym).map{|s| Mcrain.class_for(s)}.each(&:pull_image)
   else
     raise "Unknown action: #{action.inspect}"
