@@ -73,18 +73,19 @@ jobs:
       - run: docker pull hectcastro/riak:latest
 
       - run:
-          name: Setup rspec-runner environment variables and volumes
+          name: Setup rspec-runner environment variables
           command: |
-            printenv | sort | grep -Ev '^(DOCKER_CERT_PATH|CIRCLE_BUILD_TOKEN)=' | grep -E '^(CI=|CIRCLECI=|CIRCLE_|DOCKER_)' > .circleci/env
-            echo "DOCKER_CERT_PATH=/data/$(basename ${DOCKER_CERT_PATH})" >> .circleci/env
-            docker volume create data
-            docker create --name cfg -v data:/data rspec-runner
-            docker cp ${DOCKER_CERT_PATH} cfg:/data
-            docker rm cfg
+            printenv | sort | grep -Ev '^(DOCKER_*|CIRCLE_BUILD_TOKEN)=' | grep -E '^(CI=|CIRCLECI=|CIRCLE_)' > .circleci/env
+            echo "DOCKER_HOST=tcp://127.0.0.1:2375" >> .circleci/env
+
+      - run:
+          name: Run socat to connect remote docker socket
+          command: docker run -d --restart=always --name socat -v /run/docker.sock:/run/docker.sock alpine/socat TCP-LISTEN:2375,reuseaddr,fork UNIX-CLIENT:/run/docker.sock
 
       - run:
           name: Run rake spec in remote docker
-          command: docker run --rm --env-file .circleci/env -v data:/data rspec-runner bundle exec rake spec
+          command: docker run --rm --env-file .circleci/env --net=container:socat rspec-runner bundle exec rake spec
+
 
 workflows:
   version: 2
